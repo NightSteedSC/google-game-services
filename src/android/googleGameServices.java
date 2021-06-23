@@ -1,4 +1,4 @@
-package org.apache.cordova.google-game-services;
+package org.apache.googleGameServices;
 
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -28,7 +28,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 ////////////////////////////////////////////////////
-public class google-game-services extends CordovaPlugin  {
+public class googleGameServices extends CordovaPlugin  {
 
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;

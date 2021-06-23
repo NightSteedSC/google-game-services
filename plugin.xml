@@ -3,13 +3,13 @@
 xmlns="http://apache.org/cordova/ns/plugins/1.0" 
 xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>NSG_GoogleMobileServices</name>
-	<js-module name="NSG_GoogleMobileServices" src="www/google-game-services.js">
-		<clobbers target="cordova.plugins.google-game-services" />
+	<js-module name="googleGameServices" src="www/googleGameServices.js">
+		<clobbers target="cordova.plugins.googleGameServices" />
 	</js-module>
 	<platform name="android">
 		<config-file parent="/*" target="res/xml/config.xml">
-			<feature name="google-game-services">
-				<param name="android-package" value="org.apache.cordova.google-game-services.google-game-services" />
+			<feature name="googleGameServices">
+				<param name="android-package" value="org.apache.cordova.googleGameServices.googleGameServices" />
 			</feature>
 		</config-file>
 		 <config-file target="AndroidManifest.xml" parent="application">
@@ -19,7 +19,7 @@ xmlns:android="http://schemas.android.com/apk/res/android">
         </config-file>
 		
 		<config-file parent="/*" target="AndroidManifest.xml"></config-file>
-		<source-file src="src/android/google-game-services.java" target-dir="src/org/apache/cordova/google-game-services" />
+		<source-file src="src/android/googleGameServices.java" target-dir="src/org/apache/cordova/googleGameServices" />
 
 		
 		<framework src="com.google.android.gms:play-services-auth:19.0.0" />
