@@ -1,4 +1,4 @@
-package org.apache.googleGameServices;
+package org.apache.cordova.googleGameServices;
 
 import android.app.AlertDialog;
 import android.content.Intent;
