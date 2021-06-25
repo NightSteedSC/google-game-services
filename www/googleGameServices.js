@@ -16,8 +16,8 @@ cordova.define("googleGameServices.googleGameServices", function(require, export
     exports.showLeaderboards = function ( LeaderboardID, success, error) {
         exec(success, error, 'googleGameServices','showLeaderboards',[LeaderboardID]);
     };
-    exports.unlockAchievment = function (AchievmentID, success, error) {
-        exec(success, error, 'googleGameServices','unlockAchievment',[AchievmentID]);
+    exports.unlockAchievements = function (AchievementID, success, error) {
+        exec(success, error, 'googleGameServices','unlockAchievements',[AchievementID]);
     }
 });
 

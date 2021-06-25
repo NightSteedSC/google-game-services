@@ -73,8 +73,8 @@ public class googleGameServices extends CordovaPlugin  {
             submitScoreForLeaderboards(callbackContext, args);
         } else if (action.equals("showLeaderboards")) {Log.d("log","***showLeaderboards");
             showLeaderboards(callbackContext, args);
-        }else if (action.equals("unlockAchievment")) {Log.d("log","***unlockAchievment");
-            unlockAchi(callbackContext,args);
+        }else if (action.equals("unlockAchievements")) {Log.d("log","***unlockAchievements");
+            unlockAchievements(callbackContext,args);
         }
         return false;  // Returning false results in a "MethodNotFound" error.
     }
@@ -122,7 +122,7 @@ public class googleGameServices extends CordovaPlugin  {
                 });
     }
 
-    private void unlockAchi(final CallbackContext callbackContext, final JSONArray data) throws JSONException{
+    private void unlockAchievements(final CallbackContext callbackContext, final JSONArray data) throws JSONException{
         if (account == null){Log.w(TAG, "*** account null ***" + account );return ;}
         String id = data.getString(0);
         Games.getAchievementsClient(this.cordova.getActivity(), account)
