@@ -23,6 +23,7 @@ import com.google.android.gms.games.EventsClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.PlayersClient;
+import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -45,7 +46,7 @@ public class googleGameServices extends CordovaPlugin  {
     private String mDisplayName = "";
     private GoogleSignInAccount account;
     private GoogleSignInOptions gso;
-    int a =0;
+    private GamesClient gamesClient;
 
     /////////////////////////////////////////////////////////////////////////////
     @Override
@@ -163,6 +164,9 @@ public class googleGameServices extends CordovaPlugin  {
                 Log.w(TAG, "*** SIGN IN account: " + account );
                 Log.w(TAG, "*** SIGN IN account account.getEmail(): " + account.getEmail() );
 
+
+                gamesClient = Games.getGamesClient(cordova.getContext(), account);
+                gamesClient.setViewForPopups(webView.getView());
                 onConnected(account);
             } else {
                 String message = result.getStatus().getStatusMessage();
@@ -191,6 +195,8 @@ public class googleGameServices extends CordovaPlugin  {
                     public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "*** signInSilently(): success");
+                            gamesClient = Games.getGamesClient(cordova.getContext(), account);
+                            gamesClient.setViewForPopups(webView.getView());
                             onConnected(task.getResult());
                         } else {
                             Log.d(TAG, "*** signInSilently(): failure", task.getException());
