@@ -19,5 +19,8 @@ cordova.define("googleGameServices.googleGameServices", function(require, export
     exports.unlockAchievements = function (AchievementID, success, error) {
         exec(success, error, 'googleGameServices','unlockAchievements',[AchievementID]);
     }
+    exports.OnLoginSuccess = function (callback, success, error){
+        document.addEventListener('OnLoginSuccess', function(){callback();});
+    }
 });
 

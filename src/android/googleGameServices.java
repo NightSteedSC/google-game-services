@@ -203,6 +203,7 @@ public class googleGameServices extends CordovaPlugin  {
 
 
     private void onConnected(GoogleSignInAccount googleSignInAccount) {
+        webView.loadUrl("javascript:cordova.fireDocumentEvent('OnLoginSuccess');");
         Log.d(TAG, "***onConnected(): connected to Google APIs");
 
         mAchievementsClient = Games.getAchievementsClient(cordova.getContext(), account);
