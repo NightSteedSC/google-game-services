@@ -61,7 +61,7 @@ public class googleGameServices extends CordovaPlugin  {
         mGoogleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), gso);
         account = GoogleSignIn.getLastSignedInAccount(this.cordova.getActivity());
         Log.w(TAG, "*** initialize account: " + account );
-//        signInSilently();
+        signInSilently();
     }
     /////////////////////////////////////////////////////////////////////////////
     @Override//funkcja która łączy się z JS
