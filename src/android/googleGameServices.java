@@ -34,7 +34,7 @@ public class googleGameServices extends CordovaPlugin  {
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
     private static final int RC_ACHIEVEMENT_UI = 9003;
-    private GoogleSignInClient mGoogleSignInClient;
+
 
     ////////////////////////////////////
 
@@ -44,8 +44,10 @@ public class googleGameServices extends CordovaPlugin  {
     private PlayersClient mPlayersClient;
     private static final int RC_UNUSED = 5001;
     private String mDisplayName = "";
-    private GoogleSignInAccount account;
-    private GoogleSignInOptions gso;
+
+    private GoogleSignInClient googleSignInClient;
+    private GoogleSignInAccount googleSignInAccount;
+    private GoogleSignInOptions googleSignInOptions;
     private GamesClient gamesClient;
 
     /////////////////////////////////////////////////////////////////////////////
@@ -55,13 +57,20 @@ public class googleGameServices extends CordovaPlugin  {
 
         Log.w(TAG, "*** MAIN initialize");
 
-        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-                .requestEmail()
-                .build();
-        mGoogleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), gso);
-        account = GoogleSignIn.getLastSignedInAccount(this.cordova.getActivity());
-        Log.w(TAG, "*** initialize account: " + account );
-        signInSilently();
+        googleSignInOptions = GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN;
+        googleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), googleSignInOptions);
+
+        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(cordova.getContext());
+
+        Log.w(TAG, "*** MAIN initialize googleSignInAccount: " + googleSignInAccount);
+
+        if(googleSignInAccount == null){
+            Log.w(TAG, "*** MAIN initialize signInSilently(): " + googleSignInAccount);
+            signInSilently();
+        } else {
+            Log.w(TAG, "*** MAIN initialize SIGNED IN: " + googleSignInAccount);
+        }
+
     }
     /////////////////////////////////////////////////////////////////////////////
     @Override//funkcja która łączy się z JS
@@ -82,7 +91,7 @@ public class googleGameServices extends CordovaPlugin  {
 
     private void signInToGooglePlayGames() {
         Log.w(TAG, "***signInToGooglePlayGames" );
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        Intent signInIntent = googleSignInClient.getSignInIntent();
 
         cordova.setActivityResultCallback(this);
         cordova.getActivity().startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -90,25 +99,9 @@ public class googleGameServices extends CordovaPlugin  {
 //        Log.w(TAG, "***signInToGooglePlayGames4" );
     }
 
-    private void showAchievements() {
-        Log.w(TAG, "*** showAchi: "+ account);
-        if (account == null){return ;}
-        account = GoogleSignIn.getLastSignedInAccount(this.cordova.getActivity());
-        Log.w(TAG, "*** showAchi: "+ account);
-        Games.getAchievementsClient(this.cordova.getActivity(),account )
-                .getAchievementsIntent()
-                .addOnSuccessListener(new OnSuccessListener<Intent>() {
-                    @Override
-                    public void onSuccess(Intent intent) {
-                        Log.w(TAG, "*** success: "  );
-                        cordova.getActivity().startActivityForResult(intent, RC_ACHIEVEMENT_UI);
-                        Log.w(TAG, "*** posukcesie: " );
-                    }
-                });Log.w(TAG, "*** POshowAchi: " );
-    }
 
     private void showLeaderboards(final CallbackContext callbackContext, final JSONArray data) throws JSONException{
-        if (account == null){return ;}
+        if (googleSignInAccount == null){return ;}
 
         String leaderboardiId = data.getString(0);
         Log.w(TAG, "*** showLeaderboards: id: " + leaderboardiId);
@@ -123,16 +116,43 @@ public class googleGameServices extends CordovaPlugin  {
                 });
     }
 
+
+
+    private void showAchievements() {
+        if (googleSignInAccount == null){
+            return ;
+        }
+
+
+//        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this.cordova.getActivity());
+//        Log.w(TAG, "*** showAchi: "+ googleSignInAccount);
+
+        mAchievementsClient.getAchievementsIntent()
+                .addOnSuccessListener(new OnSuccessListener<Intent>() {
+                    @Override
+                    public void onSuccess(Intent intent) {
+                        Log.w(TAG, "*** mAchievementsClient.getAchievementsIntent: "  );
+//                        cordova.setActivityResultCallback(this);
+                        cordova.getActivity().startActivityForResult(intent, RC_ACHIEVEMENT_UI);
+                    }
+                });
+    }
+
     private void unlockAchievements(final CallbackContext callbackContext, final JSONArray data) throws JSONException{
-        if (account == null){Log.w(TAG, "*** account null ***" + account );return ;}
+//        if (googleSignInAccount == null){
+//            Log.w(TAG, "*** account null ***" + googleSignInAccount);
+//            return;
+//        }
         String id = data.getString(0);
-        Games.getAchievementsClient(this.cordova.getActivity(), account)
-                .unlock(id);
-        Log.w(TAG, "*** unlocked: " );
+//        Games.getAchievementsClient(this.cordova.getActivity(), googleSignInAccount)
+//                .unlock(id);
+
+        mAchievementsClient.unlock(id);
+        Log.w(TAG, "*** unlocked id: " + id);
     }
 
     private void submitScoreForLeaderboards(final CallbackContext callbackContext, final JSONArray data) throws JSONException {
-        if (account == null){return ;}
+        if (googleSignInAccount == null){return ;}
         String leaderboardID = data.getString(0);
         Log.w(TAG, "*** submitScoreForLeaderboards: leaderboardID: "  + leaderboardID);
 
@@ -145,8 +165,8 @@ public class googleGameServices extends CordovaPlugin  {
     @Override
     public void onStart() {
         super.onStart();
-        account = GoogleSignIn.getLastSignedInAccount(this.cordova.getActivity());
-        Log.w(TAG, "*** OnStart: " + account );
+        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this.cordova.getActivity());
+        Log.w(TAG, "*** OnStart: " + googleSignInAccount);
         //updateUI(account);
     }
 
@@ -160,14 +180,14 @@ public class googleGameServices extends CordovaPlugin  {
 
             if (result.isSuccess()) {
                 // The signed in account is stored in the result.
-                account = result.getSignInAccount();
-                Log.w(TAG, "*** SIGN IN account: " + account );
-                Log.w(TAG, "*** SIGN IN account account.getEmail(): " + account.getEmail() );
+                googleSignInAccount = result.getSignInAccount();
+                Log.w(TAG, "*** SIGN IN account: " + googleSignInAccount);
+                Log.w(TAG, "*** SIGN IN account account.getEmail(): " + googleSignInAccount.getEmail() );
 
 
-                gamesClient = Games.getGamesClient(cordova.getContext(), account);
+                gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
                 gamesClient.setViewForPopups(webView.getView());
-                onConnected(account);
+                onConnected(googleSignInAccount);
             } else {
                 String message = result.getStatus().getStatusMessage();
                 if (message == null || message.isEmpty()) {
@@ -183,19 +203,15 @@ public class googleGameServices extends CordovaPlugin  {
         }
     }
 
-    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
-        Log.w(TAG, "***handleSignInRestult, ale puste" );
-    }
-
     private void signInSilently() {
         Log.d(TAG, "*** signInSilently()");
-        mGoogleSignInClient.silentSignIn().addOnCompleteListener(cordova.getActivity(),
+        googleSignInClient.silentSignIn().addOnCompleteListener(cordova.getActivity(),
                 new OnCompleteListener<GoogleSignInAccount>() {
                     @Override
                     public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "*** signInSilently(): success");
-                            gamesClient = Games.getGamesClient(cordova.getContext(), account);
+                            gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
                             gamesClient.setViewForPopups(webView.getView());
                             onConnected(task.getResult());
                         } else {
@@ -212,7 +228,7 @@ public class googleGameServices extends CordovaPlugin  {
         webView.loadUrl("javascript:cordova.fireDocumentEvent('OnLoginSuccess');");
         Log.d(TAG, "***onConnected(): connected to Google APIs");
 
-        mAchievementsClient = Games.getAchievementsClient(cordova.getContext(), account);
+        mAchievementsClient = Games.getAchievementsClient(cordova.getContext(), this.googleSignInAccount);
         Log.d(TAG, "***onConnected(): mAchievementsClient: " + mAchievementsClient);
         mLeaderboardsClient = Games.getLeaderboardsClient(cordova.getContext(), googleSignInAccount);
         Log.d(TAG, "***onConnected(): mLeaderboardsClient" + mLeaderboardsClient);
@@ -220,8 +236,8 @@ public class googleGameServices extends CordovaPlugin  {
         Log.d(TAG, "***onConnected(): mEventsClient" + mEventsClient);
         mPlayersClient = Games.getPlayersClient(cordova.getContext(), googleSignInAccount);
         Log.d(TAG, "***onConnected(): mPlayersClient" + mPlayersClient);
-        mGoogleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), gso);
-        Log.d(TAG, "***onConnected():mGoogleSignInClient");
+//        googleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), googleSignInOptions);
+//        Log.d(TAG, "***onConnected():mGoogleSignInClient");
 
         // Set the greeting appropriately on main menu
 //        mPlayersClient.getCurrentPlayer()
@@ -247,7 +263,7 @@ public class googleGameServices extends CordovaPlugin  {
             return;
         }
 
-        mGoogleSignInClient.signOut().addOnCompleteListener(cordova.getActivity(),
+        googleSignInClient.signOut().addOnCompleteListener(cordova.getActivity(),
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -267,13 +283,12 @@ public class googleGameServices extends CordovaPlugin  {
         mPlayersClient = null;
     }
     private boolean isSignedIn() {
-        return account != null;
+        return googleSignInAccount != null;
     }
 
     @Override
     public void onResume(boolean multitasking) {
         super.onResume(multitasking);
-
         Log.d(TAG, "onResume()");
 //        signInSilently();
     }
