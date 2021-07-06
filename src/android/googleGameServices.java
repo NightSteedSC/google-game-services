@@ -211,6 +211,7 @@ public class googleGameServices extends CordovaPlugin  {
                     public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "*** signInSilently(): success");
+                            googleSignInAccount = task.getResult();
                             gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
                             gamesClient.setViewForPopups(webView.getView());
                             onConnected(task.getResult());
