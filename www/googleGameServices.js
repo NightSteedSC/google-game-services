@@ -1,4 +1,3 @@
-cordova.define("googleGameServices.googleGameServices", function(require, exports, module) {
     var exec = require('cordova/exec');
 
     exports.initialize = function (success, error) {
@@ -22,5 +21,3 @@ cordova.define("googleGameServices.googleGameServices", function(require, export
     exports.OnLoginSuccess = function (callback, success, error){
         document.addEventListener('OnLoginSuccess', function(){callback();});
     }
-});
-
