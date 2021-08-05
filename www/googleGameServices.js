@@ -15,8 +15,8 @@
     exports.showLeaderboards = function ( LeaderboardID, success, error) {
         exec(success, error, 'googleGameServices','showLeaderboards',[LeaderboardID]);
     };
-    exports.unlockAchievements = function (AchievementID, success, error) {
-        exec(success, error, 'googleGameServices','unlockAchievements',[AchievementID]);
+    exports.unlockAchievements = function (AchievementID, type, incrementValue, success, error) {
+        exec(success, error, 'googleGameServices','unlockAchievements',[AchievementID, type, incrementValue]);
     }
     exports.OnLoginSuccess = function (callback, success, error){
         document.addEventListener('OnLoginSuccess', function(){callback();});

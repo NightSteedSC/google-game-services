@@ -143,12 +143,34 @@ public class googleGameServices extends CordovaPlugin  {
 //            Log.w(TAG, "*** account null ***" + googleSignInAccount);
 //            return;
 //        }
+
         String id = data.getString(0);
+        String type = data.getString(1);
+        int incrementValue = Integer.parseInt(data.getString(2));
+
+        Log.w(TAG, "*** unlocked id: " + id);
+        Log.w(TAG, "*** unlocked type: " + type);
+        Log.w(TAG, "*** unlocked incrementValue: " + incrementValue);
+
+        // Type 1 -> Incremental
+        // Type 0 -> Standard
+
+        if (type.equals("0")) {
+                mAchievementsClient.unlock(id);
+                Log.w(TAG, "*** unlocked id: " + id);
+        } else if(type.equals("1")){
+                mAchievementsClient.increment(id, incrementValue);
+                Log.w(TAG, "*** unlocked id: " + id);
+        } else {
+            Log.w(TAG, "*** unlocked no type: " + type);
+            return;
+        }
+
+
 //        Games.getAchievementsClient(this.cordova.getActivity(), googleSignInAccount)
 //                .unlock(id);
 
-        mAchievementsClient.unlock(id);
-        Log.w(TAG, "*** unlocked id: " + id);
+
     }
 
     private void submitScoreForLeaderboards(final CallbackContext callbackContext, final JSONArray data) throws JSONException {
