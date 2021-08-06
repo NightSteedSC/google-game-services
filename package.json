@@ -1,6 +1,6 @@
 {
   "name": "google-game-services",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Cordova plugin for Google Game Services",
   "main": "index.js",
   "scripts": {
@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/NightSteedSC/google-game-services/issues"
   },
-  "homepage": "https://github.com/NightSteedSC/google-game-services#readme"
+  "homepage": "https://github.com/NightSteedSC/google-game-services#readme",
+  "devDependencies": {
+    "fs-extra": "^10.0.0"
+  }
 }
