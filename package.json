@@ -1,6 +1,6 @@
 {
   "name": "google-game-services",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Cordova plugin for Google Game Services",
   "main": "index.js",
   "scripts": {
