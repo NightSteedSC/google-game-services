@@ -4,82 +4,51 @@ module.exports = function(ctx) {
         rootdir = ctx.opts.projectRoot,
         android_dir = path.join(ctx.opts.projectRoot, 'platforms/android'),
         strings_dir = path.join(ctx.opts.projectRoot, 'platforms/android/app/src/main/res/values/strings.xml'),
-        C2_data_file = rootdir + '/www/data.js';
+        __googlegameservicesappid_file = rootdir + '/www/__googlegameservicesappid.txt';
 
     console.log("ctx: ", ctx);
-    var myValue = "GoogleGamesAPPID";
-    var APPLICATION_ID = '';
+    var GOOGLE_GAMES_SERVICES_APP_ID = '';
 
-    getAPP_IDFromDataJs(C2_data_file, (APPLICATION_ID)=>{
-        console.log('getAPP_IDFromDataJs DONE: ', APPLICATION_ID);
-        addAPP_IDToStringsXML(()=>{
+    // // MANIFEST EDIT
+
+    getGooglegameservicesAPP_IDFromFile(__googlegameservicesappid_file, ()=>{
+        console.error('get Admob APP_IDFromDataJs DONE: ', GOOGLE_GAMES_SERVICES_APP_ID);
+        addAdmobIDToStringsXML(()=>{
+
         });
     });
 
-
-    function getAPP_IDFromDataJs(C2_data_file, callback) {
-        // MANIFEST EDIT
-        fs.readJson(C2_data_file, 'utf8', (err, packageObj) => {
-            if (err) {
-                console.log('getAPP_IDFromDataJs readJson ERROR: ', err);
-                // console.error('readJson: ', err);
-            } else {
-                printAllVals(packageObj.project);
-                callback(APPLICATION_ID);
-            }
-        });
-    }
-
-    function printAllVals(obj) {
-        for (let k in obj) {
-            if (typeof obj[k] === "object") {
-                printAllVals(obj[k])
-            } else {
-                if(typeof obj[k] === 'string'){
-                    var temp = obj[k];
-
-                    // console.log('printAllVals temp: ', temp);
-                    // console.log('printAllVals k: ', k);
-
-                    if(temp.includes(myValue)){
-                        console.log('yes');
-                        console.log(k);
-                        console.log(temp);
-                        APPLICATION_ID = temp;
-                    }
-                }
-            }
-        }
-    }
-
-    function addAPP_IDToStringsXML(callback) {
+    function addAdmobIDToStringsXML(callback) {
         var data = fs.readFileSync(strings_dir, 'utf-8');
+        var configNewData = '<string name="google_game_services_app_id">"' + GOOGLE_GAMES_SERVICES_APP_ID + '"</string></resources>';
 
-        // if (err) throw err;
-        // console.log('APPLICATION_ID: manifest!', APPLICATION_ID);
-        // console.log('addAPP_IDToManifest data:', data);
-
-        APPLICATION_ID = APPLICATION_ID.split("_");
-        APPLICATION_ID = APPLICATION_ID[1];
-
-        var configNewData = '<string name="app_id">"' + APPLICATION_ID + '"</string></resources>';
-
-        // console.log('configNewData:', configNewData);
-        // console.log('typeof data:', typeof data);
-
-        if(!data.includes(APPLICATION_ID)){
-            console.log('DOES NOT HAVE CURRENT APPLICATION_ID: ', APPLICATION_ID);
+        if(!data.includes(GOOGLE_GAMES_SERVICES_APP_ID)){
+            console.log('DOES NOT HAVE CURRENT APPLICATION_ID: ', GOOGLE_GAMES_SERVICES_APP_ID);
 
 
             var newData = data.replace(/<\/resources>/gim, configNewData);
-            console.log('addAPP_IDToManifest newData:', newData);
+            console.log('google_game_services_app_id newData:', newData);
 
             fs.writeFile(strings_dir, newData, 'utf-8', function(err) {
                 if (err) throw err;
-                console.log('Done addAPP_ID To Strings XML!');
+                console.log('Done google_game_services_app_id To Strings XML!');
                 callback();
             });
         }
         console.log('-----------------------');
     };
+
+    function getGooglegameservicesAPP_IDFromFile(googlegameservicesAPP_ID, callback) {
+        // MANIFEST EDIT
+        fs.readFile(googlegameservicesAPP_ID, 'utf8' , (err, data) => {
+            if (err) {
+                console.error(err);
+                return
+            }
+            console.log('data file: ', data);
+
+            GOOGLE_GAMES_SERVICES_APP_ID = data;
+            callback(GOOGLE_GAMES_SERVICES_APP_ID);
+        });
+    }
 };

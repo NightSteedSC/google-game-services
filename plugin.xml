@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="google-game-services" version="1.0.10"
+<plugin id="google-game-services" version="1.0.14"
 xmlns="http://apache.org/cordova/ns/plugins/1.0" 
 xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>NSG_GoogleMobileServices</name>
@@ -14,7 +14,7 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 			</feature>
 		</config-file>
 		 <config-file target="AndroidManifest.xml" parent="application">
-			 <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/app_id" />
+			 <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/google_game_services_app_id" />
 			 <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
         </config-file>
 		
