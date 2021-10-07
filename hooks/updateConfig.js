@@ -27,11 +27,16 @@ module.exports = function(ctx) {
 
 
             var newData = data.replace(/<\/resources>/gim, configNewData);
-            console.log('google_game_services_app_id newData:', newData);
+
 
             fs.writeFile(strings_dir, newData, 'utf-8', function(err) {
                 if (err) throw err;
                 console.log('Done google_game_services_app_id To Strings XML!');
+
+                var dataChanged = fs.readFileSync(strings_dir, 'utf-8');
+                console.log('google_game_services_app_id dataChanged:');
+                console.log(dataChanged);
+
                 callback();
             });
         }
