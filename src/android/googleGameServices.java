@@ -1,9 +1,15 @@
 package org.apache.cordova.googleGameServices;
 
+
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.os.StrictMode;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import android.app.Application;
+
+import org.apache.cordova.NightAds.NightAds;
+import org.apache.http.client.methods.HttpPost;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -12,21 +18,53 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaWebView;
 
+import com.android.billingclient.api.Purchase;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+//import com.google.android.gms.auth.api.credentials.
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.games.AchievementsClient;
 import com.google.android.gms.games.EventsClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.PlayersClient;
 import com.google.android.gms.games.GamesClient;
+//import com.google.android.gms.plus.Plus;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import com.google.api.client.http.GenericUrl;
+//import com.google.api.client.json.gson.gsonfactory;
+//import com.google.api.client.googleapis
+import com.google.api.client.http.HttpContent;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.http.json.JsonHttpContent;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.people.v1.PeopleService;
+import com.google.api.services.people.v1.PeopleServiceScopes;
+import com.google.api.services.people.v1.model.Birthday;
+import com.google.api.services.people.v1.model.Date;
+import com.google.api.services.people.v1.model.Person;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+
+
 
 ////////////////////////////////////////////////////
 public class googleGameServices extends CordovaPlugin  {
@@ -44,40 +82,162 @@ public class googleGameServices extends CordovaPlugin  {
     private PlayersClient mPlayersClient;
     private static final int RC_UNUSED = 5001;
     private String mDisplayName = "";
+    private String serverAuthCode = "";
+
+    private Person person;
+    private PeopleService peopleService;
+    private Credential credential;
+
 
     private GoogleSignInClient googleSignInClient;
     private GoogleSignInAccount googleSignInAccount;
     private GoogleSignInOptions googleSignInOptions;
     private GamesClient gamesClient;
+//    private HttpTransport httpTransport;
+//    private NetHttpTransport netHttpTransport;
+
+
+
+    private static final String APPLICATION_NAME = "Google People API Java Quickstart";
+    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private static final String TOKENS_DIRECTORY_PATH = "tokens";
+
+    /**
+     * Global instance of the scopes required by this quickstart.
+     * If modifying these scopes, delete your previously saved tokens/ folder.
+     */
+    private static final List<String> SCOPES = Arrays.asList(PeopleServiceScopes.CONTACTS_READONLY);
+    private static final String CREDENTIALS_FILE_PATH = "credentials.json";
+
+    private static final String WEB_CLIENT_ID = "212521125204-kf81r8kb4vajfi50rnsg6jis4tdnhgpm.apps.googleusercontent.com";
+    private static final String WEB_CLIENT_SECRET = "yBAagUw7BCjrtI1C8lPhW5XC";
+    private static final String ANDROID_DEBUG_CLIENT_ID = "212521125204-op6h43m2bj8rd56567omjg5lkvbpt44u.apps.googleusercontent.com";
+    private static final String ANDROID_PROD_CLIENT_ID = "212521125204-8o7qknbdhnkufciu061pi3ve6pn7q1ul.apps.googleusercontent.com";
+    private Application application = new Application();
+
+    private NightAds nightAds;
 
     /////////////////////////////////////////////////////////////////////////////
     @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+    public void initialize(CordovaInterface cordova, CordovaWebView webView){
         super.initialize(cordova, webView);
 
-        Log.w(TAG, "*** MAIN initialize");
-
-        googleSignInOptions = GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN;
-        googleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), googleSignInOptions);
-
-        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(cordova.getContext());
-
-        Log.w(TAG, "*** MAIN initialize googleSignInAccount: " + googleSignInAccount);
-
-        if(googleSignInAccount == null){
-            Log.w(TAG, "*** MAIN initialize signInSilently(): " + googleSignInAccount);
-            signInSilently();
-        } else {
-            Log.w(TAG, "*** MAIN initialize SIGNED IN: " + googleSignInAccount);
-        }
-
+//        if(googleSignInAccount == null){
+//            Log.w(TAG, "*** MAIN initialize signInSilently(): " + googleSignInAccount);
+////            signInSilently();
+//        } else {
+//            Log.w(TAG, "*** MAIN initialize googleSignInAccount: " + googleSignInAccount);
+//            Log.w(TAG, "*** MAIN initialize googleSignInAccount Display name: " + googleSignInAccount.getDisplayName());
+//            Log.w(TAG, "*** MAIN initialize googleSignInAccount email: " + googleSignInAccount.getEmail());
+//            Log.w(TAG, "*** MAIN initialize googleSignInAccount getServerAuthCode: " + googleSignInAccount.getServerAuthCode());
+//            Log.w(TAG, "*** MAIN initialize googleSignInAccount getGrantedScopes: " + googleSignInAccount.getGrantedScopes());
+//
+//
+//            Log.w(TAG, "*** SIGN IN account: " + googleSignInAccount);
+////        Log.w(TAG, "*** SIGN IN account account.getEmail(): " + googleSignInAccount.getEmail() );
+////        Log.w(TAG, "*** SIGN IN account getIdToken: " + googleSignInAccount.getIdToken());
+//            Log.w(TAG, "*** SIGN IN account getServerAuthCode: " + googleSignInAccount.getServerAuthCode());
+//
+////            credential = new GoogleCredential().setAccessToken(googleSignInAccount.getServerAuthCode());
+////            httpTransport = new com.google.api.client.http.javanet.NetHttpTransport();
+////            peopleService = new PeopleService.Builder(httpTransport, JSON_FACTORY, credential)
+////                    .setApplicationName(APPLICATION_NAME)
+////                    .build();
+////            try{
+////                person = peopleService.people().get("people/me?key=AIzaSyDTe2g_Si78isswNBw6sLnzfS81a353lm8")
+////                        .setRequestMaskIncludeField("birthdays")
+////                        .execute();
+////            } catch (IOException ex){
+////                Log.w(TAG, "*** MAIN initialize person ex: ");
+////                Log.w(TAG, "*** MAIN initialize person ex: " + ex.getMessage());
+////            }
+//
+////        Log.w(TAG, "*** MAIN initialize googleSignInAccount profile: " + person);
+////        Log.w(TAG, "*** MAIN initialize googleSignInAccount profile profile.getAgeRange(): " + person.getAgeRange());
+//
+//
+//        }
     }
+
+//
+//    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT, CordovaInterface cordova) throws IOException {
+//        // Load client secrets.
+////        InputStream in = PeopleQuickstart.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+//
+//        InputStream in = cordova.getContext().getAssets().open(CREDENTIALS_FILE_PATH);
+//
+//        if (in == null) {
+//            throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
+//        }
+//        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+//
+//        File tokenFolder = new File(TOKENS_DIRECTORY_PATH);
+//        if (!tokenFolder.exists()) {
+//            tokenFolder.mkdirs();
+//        }
+//
+//        // Build flow and trigger user authorization request.
+//        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+//                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+//                .setDataStoreFactory(new FileDataStoreFactory(tokenFolder))
+////                .setDataStoreFactory(tokenFolder)
+//                .setAccessType("offline")
+//                .build();
+//        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+//        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+//    }
+////
+//    public static void mainStart(CordovaInterface cordova) throws IOException, GeneralSecurityException {
+//        // Build a new authorized API client service.
+//
+//            final NetHttpTransport HTTP_TRANSPORT = new com.google.api.client.http.javanet.NetHttpTransport();
+//            PeopleService service = new PeopleService.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT, cordova))
+//                    .setApplicationName(APPLICATION_NAME)
+//                    .build();
+//
+//            // Request 10 connections.
+//            ListConnectionsResponse response = service.people().connections()
+//                    .list("people/me")
+//                    .setPageSize(10)
+//                    .setPersonFields("names,emailAddresses")
+//                    .execute();
+//
+//            // Print display name of connections if available.
+//            List<Person> connections = response.getConnections();
+//            if (connections != null && connections.size() > 0) {
+//                for (Person person : connections) {
+//                    List<Name> names = person.getNames();
+//                    if (names != null && names.size() > 0) {
+//
+//                        Log.w(TAG, "Name: " + person.getNames().get(0)
+//                                .getDisplayName());
+//
+//                        System.out.println("Name: " + person.getNames().get(0)
+//                                .getDisplayName());
+//                    } else {
+////                        System.out.println("No names available for connection.");
+//
+//                        Log.w(TAG, "No names available for connection.");
+//                    }
+//                }
+//            } else {
+////                System.out.println("No connections found.");
+//
+//                Log.w(TAG, "No connections found.");
+//            }
+//
+//    }
+
     /////////////////////////////////////////////////////////////////////////////
     @Override//funkcja która łączy się z JS
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("signInToGooglePlayGames")) {Log.d("log","***signInToGooglePlayGames");
-            signInToGooglePlayGames();
-        } else if (action.equals("showAchievements")) {Log.d("log","***showAchievements");
+//            signInToGooglePlayGames();
+        }
+        else if (action.equals("initialize")) {Log.d("log","***initialize");
+            initialize();
+        }
+        else if (action.equals("showAchievements")) {Log.d("log","***showAchievements");
             showAchievements();
         } else if (action.equals("submitScoreForLeaderboards")) {Log.d("log","***submitScoreForLeaderboards");
             submitScoreForLeaderboards(callbackContext, args);
@@ -87,6 +247,36 @@ public class googleGameServices extends CordovaPlugin  {
             unlockAchievements(callbackContext,args);
         }
         return false;  // Returning false results in a "MethodNotFound" error.
+    }
+
+    private void initialize() {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        Log.w(TAG, "*** MAIN initialize");
+
+        Scope birthdayScope = new Scope("https://www.googleapis.com/auth/user.birthday.read");
+        Scope ageRangeScope = new Scope("https://www.googleapis.com/auth/profile.agerange.read");
+        Scope profileScope = new Scope("https://www.googleapis.com/auth/userinfo.profile");
+
+//        googleSignInOptions = GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN;
+        googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
+                .requestServerAuthCode(WEB_CLIENT_ID)
+                .requestIdToken(WEB_CLIENT_ID)
+                .requestScopes(birthdayScope,profileScope)
+                .build();
+
+        googleSignInClient = GoogleSignIn.getClient(cordova.getActivity(), googleSignInOptions);
+
+//        Intent intent = googleSignInClient.getSignInIntent();
+//        startActivityForResult(intent, RC_SIGN_IN);
+
+//        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(cordova.getContext());
+
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+
+        cordova.setActivityResultCallback(this);
+        cordova.getActivity().startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     private void signInToGooglePlayGames() {
@@ -156,11 +346,11 @@ public class googleGameServices extends CordovaPlugin  {
         // Type 0 -> Standard
 
         if (type.equals("0")) {
-                mAchievementsClient.unlock(id);
-                Log.w(TAG, "*** unlocked id: " + id);
+            mAchievementsClient.unlock(id);
+            Log.w(TAG, "*** unlocked id: " + id);
         } else if(type.equals("1")){
-                mAchievementsClient.increment(id, incrementValue);
-                Log.w(TAG, "*** unlocked id: " + id);
+            mAchievementsClient.increment(id, incrementValue);
+            Log.w(TAG, "*** unlocked id: " + id);
         } else {
             Log.w(TAG, "*** unlocked no type: " + type);
             return;
@@ -195,34 +385,152 @@ public class googleGameServices extends CordovaPlugin  {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RC_SIGN_IN) {
 
-            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            Log.w(TAG, "*** result.isSuccess(): " + result.isSuccess() );
+        Log.w(TAG, "*** result requestCode: " + requestCode );
+        Log.w(TAG, "*** result resultCode: " + resultCode );
+        Log.w(TAG, "*** result data: " + data );
 
-            if (result.isSuccess()) {
-                // The signed in account is stored in the result.
-                googleSignInAccount = result.getSignInAccount();
-                Log.w(TAG, "*** SIGN IN account: " + googleSignInAccount);
-                Log.w(TAG, "*** SIGN IN account account.getEmail(): " + googleSignInAccount.getEmail() );
+        if (data != null)
+        {
+            if (requestCode == RC_SIGN_IN) {
+                GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+//                Auth.GoogleSignInApi.revokeAccess(Auth.GoogleSignInApi);
+
+                Log.w(TAG, "*** result: " + result );
+                Log.w(TAG, "*** result.isSuccess(): " + result.isSuccess() );
+
+                if (result.isSuccess()) {
+                    // The signed in account is stored in the result.
+                    googleSignInAccount = result.getSignInAccount();
+                    serverAuthCode = googleSignInAccount.getServerAuthCode();
+
+                    Log.w(TAG, "*** profile getEmail: " + googleSignInAccount.getEmail());
+
+                    String redirectUrl = "urn:ietf:wg:oauth:2.0:oob";
+                    HttpTransport httpTransport = new NetHttpTransport();
+                    JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+
+                    Thread thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
+                                        httpTransport,
+                                        jsonFactory,
+                                        WEB_CLIENT_ID,
+                                        WEB_CLIENT_SECRET,
+                                        googleSignInAccount.getServerAuthCode(),
+                                        redirectUrl
+                                ).execute();
+
+                                Log.w(TAG, "*** GoogleTokenResponse GOOD: " + tokenResponse );
+
+                                GoogleCredential credential = new GoogleCredential.Builder()
+                                        .setClientSecrets(WEB_CLIENT_ID, WEB_CLIENT_SECRET)
+                                        .setTransport(httpTransport)
+                                        .setJsonFactory(jsonFactory)
+                                        .build();
+
+                                credential.setFromTokenResponse(tokenResponse);
+
+                                peopleService = new PeopleService.Builder(httpTransport, JSON_FACTORY, credential)
+                                        .setApplicationName(APPLICATION_NAME)
+                                        .build();
+
+                                Person profile = peopleService.people().get("people/me")
+                                        .setPersonFields("birthdays")
+                                        .execute();
+
+                                List<Birthday> birthdays = profile.getBirthdays();
+                                Log.w(TAG, "*** profile birthdays: " + birthdays );
+
+                                if (birthdays != null && birthdays.size() > 0) {
+
+                                    for (Birthday b : birthdays) {
+
+                                        Date bdate = b.getDate();
+
+                                        if (bdate != null) {
+                                            String bday, bmonth, byear;
+
+                                            if (bdate.getYear() == null) {
+                                                continue;
+                                            } else {
+                                                byear = bdate.getYear().toString();
+                                            }
+
+                                            if (bdate.getDay() != null)
+                                                bday = bdate.getDay().toString();
+                                            else bday = "";
+                                            if (bdate.getMonth() != null)
+                                                bmonth = bdate.getMonth().toString();
+                                            else bmonth = "";
+
+                                            Log.w(TAG, "*** profile.getBirthdays bday: " + bday);
+                                            Log.w(TAG, "*** profile.getBirthdays bmonth: " + bmonth);
+                                            Log.w(TAG, "*** profile.getBirthdays byear: " + byear);
+//
+//                                            Intent intent = new Intent(cordova.getActivity(), this.getClass());
+//
+////        String name = objArrayList.get(pos).getName;
+//                                            intent.putExtra("hasBirthday", true);
+//                                            intent.putExtra("birthdayDay", bday);
+//                                            intent.putExtra("birthdayMonth", bmonth);
+//                                            intent.putExtra("birthdayYear", byear);
+
+//                                            cordova.getActivity().startActivityForResult(intent, RC_SIGN_IN);
+
+                                            goToUrl("javascript:cordova.fireDocumentEvent('OnLoginSuccess', {'day': '" + bday + "', 'month': '" + bmonth + "', 'year': '" + byear + "'})");
+
+                                            Log.w(TAG, "*** MAIN initialize googleSignInAccount getServerAuthCode 2: " + serverAuthCode);
+                                            gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
+                                            gamesClient.setViewForPopups(webView.getView());
+                                            onConnected();
+
+//                                            initNightAds(true, bdate);
 
 
-                gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
-                gamesClient.setViewForPopups(webView.getView());
-                onConnected(googleSignInAccount);
-            } else {
-                String message = result.getStatus().getStatusMessage();
-                if (message == null || message.isEmpty()) {
-//                    message = getString(R.string.signin_other_error);
+                                        } else {
+                                            Log.w(TAG, "*** profile.getBirthdays bdate NULL: ");
+                                        }
+                                    }
+                                }
+                            } catch (IOException ex){
+                                Log.w(TAG, "*** GoogleTokenResponse ERR ex: " + ex.getMessage() );
+                            }
 
-                    Log.w(TAG, "*** SIGN IN FAILED: result.getStatus().getStatusMessage(): " + result.getStatus().getStatusMessage());
-                    Log.w(TAG, "*** SIGN IN FAILED result: " + result);
-                    Log.w(TAG, "*** SIGN IN FAILED: " + message);
+                        }
+                    });
+
+                    thread.start();
+
+
+
+//                    if (serverAuthCode != null){
+//                        goToUrl("javascript:cordova.fireDocumentEvent('sendAuthCode', {'serverAuthCode': '" + serverAuthCode + "'})");
+////                        sendAuthCode(serverAuthCode);
+//                    }
+                } else {
+
+                    //TODO SET DEFAULT ADMOB AGE
+
+                    Date defaultDate = new Date();
+//                    initNightAds(false, defaultDate);
+
+                    String message = result.getStatus().getStatusMessage();
+                    if (message == null || message.isEmpty()) {
+                        Log.w(TAG, "*** SIGN IN FAILED: result.getStatus().getStatusMessage(): " + result.getStatus().getStatusMessage());
+                        Log.w(TAG, "*** SIGN IN FAILED result.getStatus(): " + result.getStatus());
+                        Log.w(TAG, "*** SIGN IN FAILED: " + message);
+                    }
                 }
-                new AlertDialog.Builder(cordova.getActivity()).setMessage(message)
-                        .setNeutralButton(android.R.string.ok, null).show();
             }
         }
+    }
+
+    private void initNightAds(Boolean hasBirthday, Date dateOfBirth) {
+//        NightAds nightAds = new NightAds();
+        nightAds.initFromGoogleGameServices(hasBirthday, dateOfBirth);
     }
 
     private void signInSilently() {
@@ -236,7 +544,7 @@ public class googleGameServices extends CordovaPlugin  {
                             googleSignInAccount = task.getResult();
                             gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
                             gamesClient.setViewForPopups(webView.getView());
-                            onConnected(task.getResult());
+                            onConnected();
                         } else {
                             Log.d(TAG, "*** signInSilently(): failure", task.getException());
                             onDisconnected();
@@ -245,13 +553,14 @@ public class googleGameServices extends CordovaPlugin  {
                 });
     }
 
+    private void onConnected() {
+//        webView.loadUrl("javascript:cordova.fireDocumentEvent('OnLoginSuccess');");
 
 
-    private void onConnected(GoogleSignInAccount googleSignInAccount) {
-        webView.loadUrl("javascript:cordova.fireDocumentEvent('OnLoginSuccess');");
+
         Log.d(TAG, "***onConnected(): connected to Google APIs");
 
-        mAchievementsClient = Games.getAchievementsClient(cordova.getContext(), this.googleSignInAccount);
+        mAchievementsClient = Games.getAchievementsClient(cordova.getContext(), googleSignInAccount);
         Log.d(TAG, "***onConnected(): mAchievementsClient: " + mAchievementsClient);
         mLeaderboardsClient = Games.getLeaderboardsClient(cordova.getContext(), googleSignInAccount);
         Log.d(TAG, "***onConnected(): mLeaderboardsClient" + mLeaderboardsClient);
@@ -259,23 +568,6 @@ public class googleGameServices extends CordovaPlugin  {
         Log.d(TAG, "***onConnected(): mEventsClient" + mEventsClient);
         mPlayersClient = Games.getPlayersClient(cordova.getContext(), googleSignInAccount);
         Log.d(TAG, "***onConnected(): mPlayersClient" + mPlayersClient);
-//        googleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), googleSignInOptions);
-//        Log.d(TAG, "***onConnected():mGoogleSignInClient");
-
-        // Set the greeting appropriately on main menu
-//        mPlayersClient.getCurrentPlayer()
-//                .addOnCompleteListener(new OnCompleteListener<Player>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<Player> task) {
-//                        String displayName;
-//                        if (task.isSuccessful()) {
-//                            displayName = task.getResult().getDisplayName();
-//                        } else {
-//                            Exception e = task.getException();
-//                        }
-//
-//                    }
-//                });
     }
 
     private void signOut() {
@@ -300,7 +592,6 @@ public class googleGameServices extends CordovaPlugin  {
 
     private void onDisconnected() {
         Log.d(TAG, "onDisconnected()");
-
         mAchievementsClient = null;
         mLeaderboardsClient = null;
         mPlayersClient = null;
@@ -316,19 +607,52 @@ public class googleGameServices extends CordovaPlugin  {
 //        signInSilently();
     }
 
+    public void goToUrl(String url){
+        // fragment using getActivity ()
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webView.loadUrl(url);
+            }
+        });
+    }
 
-
-//    private void signIn() {
-//        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-//                .build();
-//        mGoogleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), gso);
 //
-//        Log.w(TAG, "***signIn1" );
-//        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-//        Log.w(TAG, "***signIn2" );
-//        cordova.getActivity().startActivityForResult(signInIntent, RC_SIGN_IN);
-//        Log.w(TAG, "***signIn3" );
-//        mGoogleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), gso);
-//        Log.w(TAG, "***signIn4" );
+//    public void sendAuthCode(String authCode){
+//        HttpPost httpPost = new HttpPost("https://nsg-v.herokuapp.com/authcode");
+//
+//        String url = "https://nsg-v.herokuapp.com/authcode";
+//        GenericUrl uri = new GenericUrl(url);
+//
+//        HttpRequestFactory httpRequestFactory = new NetHttpTransport().createRequestFactory();
+//        String requestBody = "{'name': 'newIndia','columns': [{'name': 'Species','type': 'STRING'}],'description': 'Insect Tracking Information.','isExportable': true}";
+//        HttpContent content = new JsonHttpContent(JSON_FACTORY,authCode);;
+//
+//        Thread thread = new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                try  {
+//                    try {
+//                        Log.w(TAG, "*** MAIN initialize HttpRequest new GenericUrl(url):  " + new GenericUrl(url));
+//
+//                        HttpRequest request =      httpRequestFactory.buildPostRequest(
+//                                new GenericUrl(url), content);
+////                        HttpRequest request = httpRequestFactory.buildPostRequest(uri, content);
+//                        request.getHeaders().setAccept("application/json");
+//                        request.getHeaders().setContentType("application/json;charset=UTF-8");
+//                        request.execute();
+//
+//                    }
+//                    catch (IOException ex){
+//                        Log.w(TAG, "*** MAIN initialize HttpRequest: " + ex.getMessage());
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
+//
+//        thread.start();
 //    }
 }
