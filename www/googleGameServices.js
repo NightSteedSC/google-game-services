@@ -18,6 +18,10 @@
     exports.unlockAchievements = function (AchievementID, type, incrementValue, success, error) {
         exec(success, error, 'googleGameServices','unlockAchievements',[AchievementID, type, incrementValue]);
     }
+    // exports.OnLoginSuccess = function (callback, success, error){
+    //     document.addEventListener('OnLoginSuccess', function(){callback();});
+    // }
+
     exports.OnLoginSuccess = function (callback, success, error){
-        document.addEventListener('OnLoginSuccess', function(){callback();});
+        document.addEventListener('OnLoginSuccess', function(data_){callback(data_);});
     }

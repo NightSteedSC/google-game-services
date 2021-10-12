@@ -12,7 +12,7 @@ module.exports = function(ctx) {
     // // MANIFEST EDIT
 
     getGooglegameservicesAPP_IDFromFile(__googlegameservicesappid_file, ()=>{
-        console.error('get Admob APP_IDFromDataJs DONE: ', GOOGLE_GAMES_SERVICES_APP_ID);
+        console.error('get Google Games APP_ID From txt file DONE: ', GOOGLE_GAMES_SERVICES_APP_ID);
         addAdmobIDToStringsXML(()=>{
 
         });
@@ -23,22 +23,32 @@ module.exports = function(ctx) {
         var configNewData = '<string name="google_game_services_app_id">"' + GOOGLE_GAMES_SERVICES_APP_ID + '"</string></resources>';
 
         if(!data.includes(GOOGLE_GAMES_SERVICES_APP_ID)){
-            console.log('DOES NOT HAVE CURRENT APPLICATION_ID: ', GOOGLE_GAMES_SERVICES_APP_ID);
-
+            console.log('DOES NOT HAVE CURRENT GAMES APPLICATION_ID: ', GOOGLE_GAMES_SERVICES_APP_ID);
 
             var newData = data.replace(/<\/resources>/gim, configNewData);
-
 
             fs.writeFile(strings_dir, newData, 'utf-8', function(err) {
                 if (err) throw err;
                 console.log('Done google_game_services_app_id To Strings XML!');
 
                 var dataChanged = fs.readFileSync(strings_dir, 'utf-8');
+
                 console.log('google_game_services_app_id dataChanged:');
                 console.log(dataChanged);
 
-                callback();
+
+                if(!dataChanged.includes(GOOGLE_GAMES_SERVICES_APP_ID)){
+                    console.log('DOES NOT HAVE CURRENT GAMES  APPLICATION_ID 2: ', GOOGLE_GAMES_SERVICES_APP_ID);
+
+                    fs.writeFile(strings_dir, newData, 'utf-8', function(err) {
+                        callback();
+                    });
+                } else {
+                    callback();
+                }
             });
+        } else {
+            callback();
         }
         console.log('-----------------------');
     };
