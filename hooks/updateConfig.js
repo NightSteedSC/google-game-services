@@ -3,6 +3,7 @@ module.exports = function(ctx) {
         path = require('path'),
         rootdir = ctx.opts.projectRoot,
         android_dir = path.join(ctx.opts.projectRoot, 'platforms/android'),
+        build_gradle_dir = path.join(ctx.opts.projectRoot, 'platforms/android/app/build.gradle'),
         strings_dir = path.join(ctx.opts.projectRoot, 'platforms/android/app/src/main/res/values/strings.xml'),
         __googlegameservicesappid_file = rootdir + '/www/__googlegameservicesappid.txt';
 
@@ -11,12 +12,53 @@ module.exports = function(ctx) {
 
     // // MANIFEST EDIT
 
+    addConfigToBuildGradleApp(()=>{
+
+    })
+
     getGooglegameservicesAPP_IDFromFile(__googlegameservicesappid_file, ()=>{
         console.error('get Google Games APP_ID From txt file DONE: ', GOOGLE_GAMES_SERVICES_APP_ID);
         addAdmobIDToStringsXML(()=>{
-
         });
     });
+
+
+
+    function addConfigToBuildGradleApp(callback) {
+        var data = fs.readFileSync(build_gradle_dir, 'utf-8');
+        var configNewData = "configurations {all*.exclude group: 'com.google.guava', module: 'listenablefuture'}";
+
+        var currentStringDataToUse = "for (def func : cdvPluginPostBuildExtras) {"
+
+        if(!data.includes(configNewData)){
+
+            var newData = data.replace(currentStringDataToUse, configNewData);
+
+            fs.writeFile(build_gradle_dir, newData, 'utf-8', function(err) {
+                if (err) throw err;
+                console.log('Done BUILD GRADLE!');
+
+                var dataChanged = fs.readFileSync(build_gradle_dir, 'utf-8');
+
+                console.log('BUILD GRADLE dataChanged:');
+                console.log(dataChanged);
+
+
+                if(!dataChanged.includes(configNewData)){
+                    console.log('DOES NOT HAVE CURRENT BUILD GRADLE dataChanged:: ', GOOGLE_GAMES_SERVICES_APP_ID);
+
+                    fs.writeFile(build_gradle_dir, newData, 'utf-8', function(err) {
+                        callback();
+                    });
+                } else {
+                    callback();
+                }
+            });
+        } else {
+            callback();
+        }
+        console.log('-----------------------');
+    }
 
     function addAdmobIDToStringsXML(callback) {
         var data = fs.readFileSync(strings_dir, 'utf-8');

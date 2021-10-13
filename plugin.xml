@@ -23,6 +23,13 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 
 		<framework src="com.google.android.gms:play-services-auth:19.0.0" />
         <framework src="com.google.android.gms:play-services-games:21.0.0" />
+		<framework src="com.google.android.gms:play-services-base:17.5.0" />
+		<framework src="com.android.billingclient:billing:4.0.0" />
+		<framework src="org.jetbrains:annotations:15.0" />
+		<framework src="com.google.api-client:google-api-client:1.23.0" />
+		<framework src="com.google.oauth-client:google-oauth-client-jetty:1.23.0" />
+		<framework src="com.google.apis:google-api-services-people:v1-rev277-1.23.0" />
+
+
 	</platform>
-	
 </plugin>
