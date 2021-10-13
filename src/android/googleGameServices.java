@@ -159,80 +159,11 @@ public class googleGameServices extends CordovaPlugin  {
 //        }
     }
 
-//
-//    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT, CordovaInterface cordova) throws IOException {
-//        // Load client secrets.
-////        InputStream in = PeopleQuickstart.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
-//
-//        InputStream in = cordova.getContext().getAssets().open(CREDENTIALS_FILE_PATH);
-//
-//        if (in == null) {
-//            throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
-//        }
-//        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-//
-//        File tokenFolder = new File(TOKENS_DIRECTORY_PATH);
-//        if (!tokenFolder.exists()) {
-//            tokenFolder.mkdirs();
-//        }
-//
-//        // Build flow and trigger user authorization request.
-//        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-//                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-//                .setDataStoreFactory(new FileDataStoreFactory(tokenFolder))
-////                .setDataStoreFactory(tokenFolder)
-//                .setAccessType("offline")
-//                .build();
-//        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-//        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-//    }
-////
-//    public static void mainStart(CordovaInterface cordova) throws IOException, GeneralSecurityException {
-//        // Build a new authorized API client service.
-//
-//            final NetHttpTransport HTTP_TRANSPORT = new com.google.api.client.http.javanet.NetHttpTransport();
-//            PeopleService service = new PeopleService.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT, cordova))
-//                    .setApplicationName(APPLICATION_NAME)
-//                    .build();
-//
-//            // Request 10 connections.
-//            ListConnectionsResponse response = service.people().connections()
-//                    .list("people/me")
-//                    .setPageSize(10)
-//                    .setPersonFields("names,emailAddresses")
-//                    .execute();
-//
-//            // Print display name of connections if available.
-//            List<Person> connections = response.getConnections();
-//            if (connections != null && connections.size() > 0) {
-//                for (Person person : connections) {
-//                    List<Name> names = person.getNames();
-//                    if (names != null && names.size() > 0) {
-//
-//                        Log.w(TAG, "Name: " + person.getNames().get(0)
-//                                .getDisplayName());
-//
-//                        System.out.println("Name: " + person.getNames().get(0)
-//                                .getDisplayName());
-//                    } else {
-////                        System.out.println("No names available for connection.");
-//
-//                        Log.w(TAG, "No names available for connection.");
-//                    }
-//                }
-//            } else {
-////                System.out.println("No connections found.");
-//
-//                Log.w(TAG, "No connections found.");
-//            }
-//
-//    }
-
     /////////////////////////////////////////////////////////////////////////////
     @Override//funkcja która łączy się z JS
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("signInToGooglePlayGames")) {Log.d("log","***signInToGooglePlayGames");
-//            signInToGooglePlayGames();
+            signInToGooglePlayGames();
         }
         else if (action.equals("initialize")) {Log.d("log","***initialize");
             initialize();
@@ -268,13 +199,7 @@ public class googleGameServices extends CordovaPlugin  {
 
         googleSignInClient = GoogleSignIn.getClient(cordova.getActivity(), googleSignInOptions);
 
-//        Intent intent = googleSignInClient.getSignInIntent();
-//        startActivityForResult(intent, RC_SIGN_IN);
-
-//        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(cordova.getContext());
-
         Intent signInIntent = googleSignInClient.getSignInIntent();
-
         cordova.setActivityResultCallback(this);
         cordova.getActivity().startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -282,11 +207,8 @@ public class googleGameServices extends CordovaPlugin  {
     private void signInToGooglePlayGames() {
         Log.w(TAG, "***signInToGooglePlayGames" );
         Intent signInIntent = googleSignInClient.getSignInIntent();
-
         cordova.setActivityResultCallback(this);
         cordova.getActivity().startActivityForResult(signInIntent, RC_SIGN_IN);
-//        mGoogleSignInClient = GoogleSignIn.getClient(this.cordova.getActivity(), gso);
-//        Log.w(TAG, "***signInToGooglePlayGames4" );
     }
 
 
@@ -469,26 +391,13 @@ public class googleGameServices extends CordovaPlugin  {
                                             Log.w(TAG, "*** profile.getBirthdays bday: " + bday);
                                             Log.w(TAG, "*** profile.getBirthdays bmonth: " + bmonth);
                                             Log.w(TAG, "*** profile.getBirthdays byear: " + byear);
-//
-//                                            Intent intent = new Intent(cordova.getActivity(), this.getClass());
-//
-////        String name = objArrayList.get(pos).getName;
-//                                            intent.putExtra("hasBirthday", true);
-//                                            intent.putExtra("birthdayDay", bday);
-//                                            intent.putExtra("birthdayMonth", bmonth);
-//                                            intent.putExtra("birthdayYear", byear);
 
-//                                            cordova.getActivity().startActivityForResult(intent, RC_SIGN_IN);
-
-                                            goToUrl("javascript:cordova.fireDocumentEvent('OnLoginSuccess', {'day': '" + bday + "', 'month': '" + bmonth + "', 'year': '" + byear + "'})");
+                                            goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + bday + "', 'month': '" + bmonth + "', 'year': '" + byear + "'})");
 
                                             Log.w(TAG, "*** MAIN initialize googleSignInAccount getServerAuthCode 2: " + serverAuthCode);
                                             gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
                                             gamesClient.setViewForPopups(webView.getView());
                                             onConnected();
-
-//                                            initNightAds(true, bdate);
-
 
                                         } else {
                                             Log.w(TAG, "*** profile.getBirthdays bdate NULL: ");
@@ -498,24 +407,13 @@ public class googleGameServices extends CordovaPlugin  {
                             } catch (IOException ex){
                                 Log.w(TAG, "*** GoogleTokenResponse ERR ex: " + ex.getMessage() );
                             }
-
                         }
                     });
 
                     thread.start();
-
-
-
-//                    if (serverAuthCode != null){
-//                        goToUrl("javascript:cordova.fireDocumentEvent('sendAuthCode', {'serverAuthCode': '" + serverAuthCode + "'})");
-////                        sendAuthCode(serverAuthCode);
-//                    }
                 } else {
 
-                    //TODO SET DEFAULT ADMOB AGE
-
-                    Date defaultDate = new Date();
-//                    initNightAds(false, defaultDate);
+                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed', {'': ''})");
 
                     String message = result.getStatus().getStatusMessage();
                     if (message == null || message.isEmpty()) {
@@ -554,12 +452,7 @@ public class googleGameServices extends CordovaPlugin  {
     }
 
     private void onConnected() {
-//        webView.loadUrl("javascript:cordova.fireDocumentEvent('OnLoginSuccess');");
-
-
-
         Log.d(TAG, "***onConnected(): connected to Google APIs");
-
         mAchievementsClient = Games.getAchievementsClient(cordova.getContext(), googleSignInAccount);
         Log.d(TAG, "***onConnected(): mAchievementsClient: " + mAchievementsClient);
         mLeaderboardsClient = Games.getLeaderboardsClient(cordova.getContext(), googleSignInAccount);
