@@ -26,7 +26,7 @@ module.exports = function(ctx) {
 
     function addConfigToBuildGradleApp(callback) {
         var data = fs.readFileSync(build_gradle_dir, 'utf-8');
-        var configNewData = "configurations {all*.exclude group: 'com.google.guava', module: 'listenablefuture'}";
+        var configNewData = "configurations {all*.exclude group: 'com.google.guava', module: 'listenablefuture'} for (def func : cdvPluginPostBuildExtras) {";
 
         var currentStringDataToUse = "for (def func : cdvPluginPostBuildExtras) {"
 
