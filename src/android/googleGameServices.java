@@ -22,6 +22,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 //import com.google.android.gms.auth.api.credentials.
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.games.AchievementsClient;
 import com.google.android.gms.games.EventsClient;
@@ -230,7 +231,7 @@ public class googleGameServices extends CordovaPlugin  {
         //updateUI(account);
     }
 
-    private ArrayList getBirthday(GoogleSignInAccount googleSignInAccount){
+    private void getBirthday(GoogleSignInAccount googleSignInAccount){
         String redirectUrl = "urn:ietf:wg:oauth:2.0:oob";
         HttpTransport httpTransport = new NetHttpTransport();
         JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
@@ -317,7 +318,7 @@ public class googleGameServices extends CordovaPlugin  {
         });
 
         thread.start();
-        return birthday;
+//        return birthday;
     }
 
     @Override
@@ -337,9 +338,10 @@ public class googleGameServices extends CordovaPlugin  {
 
                 if (result.isSuccess()) {
                     googleSignInAccount = result.getSignInAccount();
+                    getBirthday(googleSignInAccount);
+
                     gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
                     gamesClient.setViewForPopups(webView.getView());
-                    getBirthday(googleSignInAccount);
                     goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + birthday.get(0) + "', 'month': '" + birthday.get(1) + "', 'year': '" + birthday.get(2) + "'})");
                     onConnected();
                 } else {
@@ -363,19 +365,23 @@ public class googleGameServices extends CordovaPlugin  {
         new OnCompleteListener<GoogleSignInAccount>() {
             @Override
             public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
-                if (task.isSuccessful()) {
+                try {
                     Log.d(TAG, "*** signInSilently(): success");
-                    googleSignInAccount = task.getResult();
+                    googleSignInAccount = task.getResult(ApiException.class);
+                    getBirthday(googleSignInAccount);
+
                     gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
                     gamesClient.setViewForPopups(webView.getView());
-                    getBirthday(googleSignInAccount);
+
                     goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + birthday.get(0) + "', 'month': '" + birthday.get(1) + "', 'year': '" + birthday.get(2) + "'})");
                     onConnected();
-                } else {
-                    Log.d(TAG, "*** signInSilently(): failure", task.getException());
+
+                } catch (ApiException apiException) {
+                    Throwable cause = apiException.getCause();
+                    Log.d(TAG, "*** signInSilently(): failure cause" + cause);
                     goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed', {'a': 'a'})");
-                    onDisconnected();
                 }
+
             }
         });
     }
