@@ -56,6 +56,8 @@ import com.google.api.services.people.v1.model.Date;
 import com.google.api.services.people.v1.model.Person;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 ////////////////////////////////////////////////////
@@ -73,6 +75,8 @@ public class googleGameServices extends CordovaPlugin  {
     private String mDisplayName = "";
     private String serverAuthCode = "";
 
+    ArrayList<String> birthday = new ArrayList<String>();
+
     private PeopleService peopleService;
     private GoogleSignInClient googleSignInClient;
     private GoogleSignInAccount googleSignInAccount;
@@ -87,19 +91,20 @@ public class googleGameServices extends CordovaPlugin  {
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView){
         super.initialize(cordova, webView);
-        Log.w(TAG, "*** MAIN initialize 0");
-        GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID = cordova.getActivity().getString(cordova.getActivity().getResources().getIdentifier( "GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID", "string", cordova.getActivity().getPackageName()));
-        GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET = cordova.getActivity().getString(cordova.getActivity().getResources().getIdentifier( "GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET", "string", cordova.getActivity().getPackageName()));
+
     }
 
     /////////////////////////////////////////////////////////////////////////////
     @Override//funkcja która łączy się z JS
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("signInToGooglePlayGames")) {Log.d("log","***signInToGooglePlayGames");
+            Log.w(TAG, "*** MAIN initialize 0");
+            GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID = cordova.getActivity().getString(cordova.getActivity().getResources().getIdentifier( "GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID", "string", cordova.getActivity().getPackageName()));
+            GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET = cordova.getActivity().getString(cordova.getActivity().getResources().getIdentifier( "GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET", "string", cordova.getActivity().getPackageName()));
             signInToGooglePlayGames();
         }
         else if (action.equals("initialize")) {Log.d("log","***initialize");
-            initialize();
+//            initialize();
         }
         else if (action.equals("showAchievements")) {Log.d("log","***showAchievements");
             showAchievements();
@@ -113,14 +118,14 @@ public class googleGameServices extends CordovaPlugin  {
         return false;  // Returning false results in a "MethodNotFound" error.
     }
 
-    private void initialize() {
-        signInToGooglePlayGames();
-    }
+//    private void initialize() {
+//        signInToGooglePlayGames();
+//    }
 
     private void signInToGooglePlayGames() {
         Log.w(TAG, "***signInToGooglePlayGames" );
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+//        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+//        StrictMode.setThreadPolicy(policy);
 
         Log.w(TAG, "*** MAIN initialize");
 
@@ -135,9 +140,15 @@ public class googleGameServices extends CordovaPlugin  {
 
         googleSignInClient = GoogleSignIn.getClient(cordova.getActivity(), googleSignInOptions);
 
-        Intent signInIntent = googleSignInClient.getSignInIntent();
-        cordova.setActivityResultCallback(this);
-        cordova.getActivity().startActivityForResult(signInIntent, RC_SIGN_IN);
+        Log.w(TAG, "*** MAIN initialize googleSignInClient: " + googleSignInClient);
+
+        if(googleSignInClient != null){
+            signInSilently();
+        } else {
+            Intent signInIntent = googleSignInClient.getSignInIntent();
+            cordova.setActivityResultCallback(this);
+            cordova.getActivity().startActivityForResult(signInIntent, RC_SIGN_IN);
+        }
     }
 
     private void showLeaderboards(final CallbackContext callbackContext, final JSONArray data) throws JSONException{
@@ -219,6 +230,96 @@ public class googleGameServices extends CordovaPlugin  {
         //updateUI(account);
     }
 
+    private ArrayList getBirthday(GoogleSignInAccount googleSignInAccount){
+        String redirectUrl = "urn:ietf:wg:oauth:2.0:oob";
+        HttpTransport httpTransport = new NetHttpTransport();
+        JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
+                            httpTransport,
+                            jsonFactory,
+                            GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID,
+                            GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET,
+                            googleSignInAccount.getServerAuthCode(),
+                            redirectUrl
+                    ).execute();
+
+                    Log.w(TAG, "*** GoogleTokenResponse GOOD: " + tokenResponse );
+
+                    GoogleCredential credential = new GoogleCredential.Builder()
+                            .setClientSecrets(GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID, GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET)
+                            .setTransport(httpTransport)
+                            .setJsonFactory(jsonFactory)
+                            .build();
+
+                    credential.setFromTokenResponse(tokenResponse);
+
+                    peopleService = new PeopleService.Builder(httpTransport, JSON_FACTORY, credential)
+                            .setApplicationName(APPLICATION_NAME)
+                            .build();
+
+                    Person profile = peopleService.people().get("people/me")
+                            .setPersonFields("birthdays")
+                            .execute();
+
+                    List<Birthday> birthdays = profile.getBirthdays();
+                    Log.w(TAG, "*** profile birthdays: " + birthdays );
+
+                    if (birthdays != null && birthdays.size() > 0) {
+
+                        for (Birthday b : birthdays) {
+
+                            Date bdate = b.getDate();
+
+                            if (bdate != null) {
+                                String bday, bmonth, byear;
+
+                                if (bdate.getYear() == null) {
+                                    continue;
+                                } else {
+                                    byear = bdate.getYear().toString();
+                                }
+
+                                if (bdate.getDay() != null)
+                                    bday = bdate.getDay().toString();
+                                else bday = "";
+                                if (bdate.getMonth() != null)
+                                    bmonth = bdate.getMonth().toString();
+                                else bmonth = "";
+
+                                Log.w(TAG, "*** profile.getBirthdays bday: " + bday);
+                                Log.w(TAG, "*** profile.getBirthdays bmonth: " + bmonth);
+                                Log.w(TAG, "*** profile.getBirthdays byear: " + byear);
+
+                                birthday.add(bday);
+                                birthday.add(bmonth);
+                                birthday.add(byear);
+
+                            } else {
+                                Log.w(TAG, "*** profile.getBirthdays bdate NULL: ");
+                                birthday.add("1");
+                                birthday.add("1");
+                                birthday.add("1");
+                            }
+                        }
+                    }
+                } catch (IOException ex){
+                    Log.w(TAG, "*** GoogleTokenResponse ERR ex: " + ex.getMessage() );
+                    birthday.add("1");
+                    birthday.add("1");
+                    birthday.add("1");
+                }
+            }
+        });
+
+        thread.start();
+        return birthday;
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -231,102 +332,17 @@ public class googleGameServices extends CordovaPlugin  {
         {
             if (requestCode == RC_SIGN_IN) {
                 GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-//                Auth.GoogleSignInApi.revokeAccess(Auth.GoogleSignInApi);
-
                 Log.w(TAG, "*** result: " + result );
                 Log.w(TAG, "*** result.isSuccess(): " + result.isSuccess() );
 
                 if (result.isSuccess()) {
                     googleSignInAccount = result.getSignInAccount();
-                    serverAuthCode = googleSignInAccount.getServerAuthCode();
-
-                    Log.w(TAG, "*** profile getEmail: " + googleSignInAccount.getEmail());
-
-                    String redirectUrl = "urn:ietf:wg:oauth:2.0:oob";
-                    HttpTransport httpTransport = new NetHttpTransport();
-                    JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-
-                    Thread thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
-                                        httpTransport,
-                                        jsonFactory,
-                                        GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID,
-                                        GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET,
-                                        googleSignInAccount.getServerAuthCode(),
-                                        redirectUrl
-                                ).execute();
-
-                                Log.w(TAG, "*** GoogleTokenResponse GOOD: " + tokenResponse );
-
-                                GoogleCredential credential = new GoogleCredential.Builder()
-                                        .setClientSecrets(GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID, GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET)
-                                        .setTransport(httpTransport)
-                                        .setJsonFactory(jsonFactory)
-                                        .build();
-
-                                credential.setFromTokenResponse(tokenResponse);
-
-                                peopleService = new PeopleService.Builder(httpTransport, JSON_FACTORY, credential)
-                                        .setApplicationName(APPLICATION_NAME)
-                                        .build();
-
-                                Person profile = peopleService.people().get("people/me")
-                                        .setPersonFields("birthdays")
-                                        .execute();
-
-                                List<Birthday> birthdays = profile.getBirthdays();
-                                Log.w(TAG, "*** profile birthdays: " + birthdays );
-
-                                if (birthdays != null && birthdays.size() > 0) {
-
-                                    for (Birthday b : birthdays) {
-
-                                        Date bdate = b.getDate();
-
-                                        if (bdate != null) {
-                                            String bday, bmonth, byear;
-
-                                            if (bdate.getYear() == null) {
-                                                continue;
-                                            } else {
-                                                byear = bdate.getYear().toString();
-                                            }
-
-                                            if (bdate.getDay() != null)
-                                                bday = bdate.getDay().toString();
-                                            else bday = "";
-                                            if (bdate.getMonth() != null)
-                                                bmonth = bdate.getMonth().toString();
-                                            else bmonth = "";
-
-                                            Log.w(TAG, "*** profile.getBirthdays bday: " + bday);
-                                            Log.w(TAG, "*** profile.getBirthdays bmonth: " + bmonth);
-                                            Log.w(TAG, "*** profile.getBirthdays byear: " + byear);
-
-                                            goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + bday + "', 'month': '" + bmonth + "', 'year': '" + byear + "'})");
-
-                                            Log.w(TAG, "*** MAIN initialize googleSignInAccount getServerAuthCode 2: " + serverAuthCode);
-                                            gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
-                                            gamesClient.setViewForPopups(webView.getView());
-                                            onConnected();
-
-                                        } else {
-                                            Log.w(TAG, "*** profile.getBirthdays bdate NULL: ");
-                                        }
-                                    }
-                                }
-                            } catch (IOException ex){
-                                Log.w(TAG, "*** GoogleTokenResponse ERR ex: " + ex.getMessage() );
-                            }
-                        }
-                    });
-
-                    thread.start();
+                    gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
+                    gamesClient.setViewForPopups(webView.getView());
+                    getBirthday(googleSignInAccount);
+                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + birthday.get(0) + "', 'month': '" + birthday.get(1) + "', 'year': '" + birthday.get(2) + "'})");
+                    onConnected();
                 } else {
-
                     goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed', {'a': 'a'})");
 
                     String message = result.getStatus().getStatusMessage();
@@ -342,22 +358,26 @@ public class googleGameServices extends CordovaPlugin  {
 
     private void signInSilently() {
         Log.d(TAG, "*** signInSilently()");
+
         googleSignInClient.silentSignIn().addOnCompleteListener(cordova.getActivity(),
-                new OnCompleteListener<GoogleSignInAccount>() {
-                    @Override
-                    public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "*** signInSilently(): success");
-                            googleSignInAccount = task.getResult();
-                            gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
-                            gamesClient.setViewForPopups(webView.getView());
-                            onConnected();
-                        } else {
-                            Log.d(TAG, "*** signInSilently(): failure", task.getException());
-                            onDisconnected();
-                        }
-                    }
-                });
+        new OnCompleteListener<GoogleSignInAccount>() {
+            @Override
+            public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "*** signInSilently(): success");
+                    googleSignInAccount = task.getResult();
+                    gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
+                    gamesClient.setViewForPopups(webView.getView());
+                    getBirthday(googleSignInAccount);
+                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + birthday.get(0) + "', 'month': '" + birthday.get(1) + "', 'year': '" + birthday.get(2) + "'})");
+                    onConnected();
+                } else {
+                    Log.d(TAG, "*** signInSilently(): failure", task.getException());
+                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed', {'a': 'a'})");
+                    onDisconnected();
+                }
+            }
+        });
     }
 
     private void onConnected() {
@@ -394,10 +414,11 @@ public class googleGameServices extends CordovaPlugin  {
 
     private void onDisconnected() {
         Log.d(TAG, "onDisconnected()");
-        mAchievementsClient = null;
-        mLeaderboardsClient = null;
-        mPlayersClient = null;
+//        mAchievementsClient = null;
+//        mLeaderboardsClient = null;
+//        mPlayersClient = null;
     }
+
     private boolean isSignedIn() {
         return googleSignInAccount != null;
     }
@@ -406,6 +427,7 @@ public class googleGameServices extends CordovaPlugin  {
     public void onResume(boolean multitasking) {
         super.onResume(multitasking);
         Log.d(TAG, "onResume()");
+//        signInSilently();
     }
 
     public void goToUrl(String url){
