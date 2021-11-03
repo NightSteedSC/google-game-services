@@ -158,7 +158,7 @@ public class googleGameServices extends CordovaPlugin  {
         String leaderboardiId = data.getString(0);
         Log.w(TAG, "*** showLeaderboards: id: " + leaderboardiId);
 
-        Games.getLeaderboardsClient(cordova.getActivity(), GoogleSignIn.getLastSignedInAccount(cordova.getContext()))
+        Games.getLeaderboardsClient(cordova.getActivity(), googleSignInAccount)
                 .getLeaderboardIntent(leaderboardiId)
                 .addOnSuccessListener(new OnSuccessListener<Intent>() {
                     @Override
@@ -300,11 +300,15 @@ public class googleGameServices extends CordovaPlugin  {
                                 birthday.add(bmonth);
                                 birthday.add(byear);
 
+                                goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + birthday.get(0) + "', 'month': '" + birthday.get(1) + "', 'year': '" + birthday.get(2) + "'})");
+
                             } else {
                                 Log.w(TAG, "*** profile.getBirthdays bdate NULL: ");
                                 birthday.add("1");
                                 birthday.add("1");
                                 birthday.add("1");
+                                goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '1', 'month': '1', 'year': '1'})");
+//                                goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed', {'a': 'a'})");
                             }
                         }
                     }
@@ -313,6 +317,7 @@ public class googleGameServices extends CordovaPlugin  {
                     birthday.add("1");
                     birthday.add("1");
                     birthday.add("1");
+                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed', {'a': 'a'})");
                 }
             }
         });
@@ -342,7 +347,7 @@ public class googleGameServices extends CordovaPlugin  {
 
                     gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
                     gamesClient.setViewForPopups(webView.getView());
-                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + birthday.get(0) + "', 'month': '" + birthday.get(1) + "', 'year': '" + birthday.get(2) + "'})");
+//                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + birthday.get(0) + "', 'month': '" + birthday.get(1) + "', 'year': '" + birthday.get(2) + "'})");
                     onConnected();
                 } else {
                     goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed', {'a': 'a'})");
@@ -373,7 +378,7 @@ public class googleGameServices extends CordovaPlugin  {
                     gamesClient = Games.getGamesClient(cordova.getContext(), googleSignInAccount);
                     gamesClient.setViewForPopups(webView.getView());
 
-                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + birthday.get(0) + "', 'month': '" + birthday.get(1) + "', 'year': '" + birthday.get(2) + "'})");
+//                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess', {'day': '" + birthday.get(0) + "', 'month': '" + birthday.get(1) + "', 'year': '" + birthday.get(2) + "'})");
                     onConnected();
 
                 } catch (ApiException apiException) {
