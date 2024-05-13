@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="google-game-services" version="1.0.42"
+<plugin id="google-game-services" version="1.0.43"
 xmlns="http://apache.org/cordova/ns/plugins/1.0" 
 xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>NSG_GoogleMobileServices</name>
@@ -8,6 +8,10 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 	</js-module>
 	<hook src="hooks/updateConfig.js" type="before_build" />
 	<platform name="android">
+
+		<preference name="GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID" />
+		<preference name="GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET" />
+
 		<config-file parent="/*" target="res/xml/config.xml">
 			<feature name="googleGameServices">
 				<param name="android-package" value="org.apache.cordova.googleGameServices.googleGameServices" />

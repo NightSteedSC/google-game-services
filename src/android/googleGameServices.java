@@ -103,8 +103,12 @@ public class googleGameServices extends CordovaPlugin  {
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("signInToGooglePlayGames")) {Log.d("log","***signInToGooglePlayGames");
             Log.w(TAG, "*** MAIN initialize 0");
-            GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID = cordova.getActivity().getString(cordova.getActivity().getResources().getIdentifier( "GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID", "string", cordova.getActivity().getPackageName()));
-            GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET = cordova.getActivity().getString(cordova.getActivity().getResources().getIdentifier( "GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET", "string", cordova.getActivity().getPackageName()));
+//             GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID = cordova.getActivity().getString(cordova.getActivity().getResources().getIdentifier( "GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID", "string", cordova.getActivity().getPackageName()));
+//             GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET = cordova.getActivity().getString(cordova.getActivity().getResources().getIdentifier( "GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET", "string", cordova.getActivity().getPackageName()));
+
+            // Retrieve preferences set during plugin installation
+            GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID = webView.getPreferences().getString("GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID", "");
+            GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET = webView.getPreferences().getString("GOOGLE_GAMES_SERVICES_WEB_CLIENT_SECRET", "");
             signInToGooglePlayGames();
         }
         else if (action.equals("initialize")) {Log.d("log","***initialize");
