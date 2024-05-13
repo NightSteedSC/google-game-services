@@ -1,31 +1,19 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="google-game-services" version="1.0.44"
-xmlns="http://apache.org/cordova/ns/plugins/1.0" 
-xmlns:android="http://schemas.android.com/apk/res/android">
-	<name>NSG_GoogleMobileServices</name>
-	<js-module name="googleGameServices" src="www/googleGameServices.js">
-		<clobbers target="cordova.plugins.googleGameServices" />
+<plugin id="cordova-plugin-google-games-services" version="1.0.45"
+		xmlns="http://apache.org/cordova/ns/plugins/1.0"
+		xmlns:android="http://schemas.android.com/apk/res/android">
+	<name>GoogleGameServices</name>
+	<js-module name="GoogleGameServices" src="www/GoogleGameServices.js">
+		<clobbers target="cordova.plugins.GoogleGameServices" />
 	</js-module>
-	<hook src="hooks/updateConfig.js" type="before_build" />
 	<platform name="android">
-
 		<preference name="GOOGLE_GAMES_SERVICES_WEB_CLIENT_ID" />
-
-		<config-file parent="/*" target="res/xml/config.xml">
-			<feature name="googleGameServices">
-				<param name="android-package" value="org.apache.cordova.googleGameServices.googleGameServices" />
-			</feature>
+		<config-file target="AndroidManifest.xml" parent="application">
+			<meta-data android:name="com.google.android.gms.games.APP_ID"
+					   android:value="@string/google_games_app_id" />
 		</config-file>
-		 <config-file target="AndroidManifest.xml" parent="application">
-			 <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/google_game_services_app_id" />
-			 <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
-        </config-file>
-		
-		<config-file parent="/*" target="AndroidManifest.xml"></config-file>
-		<source-file src="src/android/googleGameServices.java" target-dir="src/org/apache/cordova/googleGameServices" />
-
-		<framework src="com.google.android.gms:play-services-games-v2:+" />
-
-
+		<source-file src="src/android/GoogleGameServices.java"
+					 target-dir="src/org/apache/cordova/googleGameServices" />
+		<framework src="com.google.android.gms:play-services-games:21.0.0" />
 	</platform>
 </plugin>
