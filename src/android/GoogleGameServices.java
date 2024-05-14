@@ -25,8 +25,8 @@ public class GoogleGameServices extends CordovaPlugin {
     @Override//funkcja która łączy się z JS
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("signIn")) {Log.d("log","***signIn");
-            Log.w(TAG, "*** MAIN initialize 0");
-            signInToGooglePlayGames();
+            Log.d("BART", "*** MAIN initialize 0");
+            signIn(callbackContext);
         }
         else if (action.equals("initialize")) {Log.d("log","***initialize");
 //            initialize();
@@ -58,9 +58,9 @@ public class GoogleGameServices extends CordovaPlugin {
     private void signIn(CallbackContext callbackContext) {
 
 
-        signInClient = PlayGames.getGamesSignInClient(cordova.getActivity());
+        gamesSignInClient = PlayGames.getGamesSignInClient(cordova.getActivity());
 
-        signInClient.isAuthenticated().addOnCompleteListener(isAuthenticatedTask -> {
+        gamesSignInClient.isAuthenticated().addOnCompleteListener(isAuthenticatedTask -> {
             boolean isAuthenticated =
                     (isAuthenticatedTask.isSuccessful() &&
                             isAuthenticatedTask.getResult().isAuthenticated());
@@ -77,9 +77,9 @@ public class GoogleGameServices extends CordovaPlugin {
         });
 
 
-       Intent signInIntent = signInClient.getSignInIntent();
-       cordova.setActivityResultCallback(this);
-       cordova.getActivity().startActivityForResult(signInIntent, 9001);
+//       Intent signInIntent = signInClient.getSignInIntent();
+//       cordova.setActivityResultCallback(this);
+//       cordova.getActivity().startActivityForResult(signInIntent, 9001);
 
     }
 
