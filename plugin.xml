@@ -1,10 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="google-game-services" version="1.0.51"
+<plugin id="google-game-services" version="1.0.52"
 		xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>GoogleGameServices</name>
-
-
 
 	<js-module name="GoogleGameServices" src="www/GoogleGameServices.js">
 		<clobbers target="cordova.plugins.GoogleGameServices" />
@@ -12,18 +10,24 @@
 
 	<platform name="android">
 
-		<hook type="after_platform_add" src="scripts/updateConfig.js" />
+		<!--		<hook type="after_platform_add" src="scripts/updateConfig.js" />-->
 		<hook type="after_platform_add" src="scripts/replaceAppId.js" />
 
-		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+		<config-file parent="/*" target="res/xml/config.xml">
+			<feature name="GoogleGameServices">
+				<param name="android-package" value="org.apache.cordova.googleGameServices"/>
+			</feature>
+		</config-file>
+
+
+		<config-file parent="/*" target="AndroidManifest.xml">
 			<meta-data android:name="com.google.android.gms.games.APP_ID"
 					   android:value="@string/google_games_app_id" />
 		</config-file>
 
 		<preference name="GOOGLE_GAMES_PROJECT_ID" />
 
-		<source-file src="src/android/GoogleGameServices.java"
-					 target-dir="src/org/apache/cordova/googleGameServices" />
+		<source-file src="src/android/GoogleGameServices.java" target-dir="src/org/apache/cordova/googleGameServices" />
 		<framework src="com.google.android.gms:play-services-games-v2:+" />
 	</platform>
 </plugin>

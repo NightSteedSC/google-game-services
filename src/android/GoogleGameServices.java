@@ -1,54 +1,97 @@
 package org.apache.cordova.googleGameServices;
 
-import org.apache.cordova.*;
+import android.content.Intent;
+import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
-
-import android.content.Intent;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.games.PlayGamesSdk;
+import org.apache.cordova.CordovaInterface;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaWebView;
 import com.google.android.gms.games.GamesSignInClient;
+import com.google.android.gms.games.PlayGames;
+import com.google.android.gms.games.PlayGamesSdk;
+import com.google.android.gms.games.Games;
 
 public class GoogleGameServices extends CordovaPlugin {
-    private GamesSignInClient signInClient;
+
+    private GamesSignInClient gamesSignInClient = PlayGames.getGamesSignInClient(this.cordova.getActivity());
 
     @Override
-    public void pluginInitialize() {
-        super.pluginInitialize();
-        PlayGamesSdk.initialize(cordova.getActivity().getApplicationContext());
-        signInClient = PlayGames.getGamesSignInClient(cordova.getActivity());
+    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+        super.initialize(cordova, webView);
     }
 
-    @Override
+    @Override//funkcja która łączy się z JS
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if ("signIn".equals(action)) {
-            this.signIn(callbackContext);
-            return true;
-        } else if ("showAchievements".equals(action)) {
-            this.showAchievements(callbackContext);
-            return true;
-        } else if ("showLeaderboards".equals(action)) {
-            this.showLeaderboards(callbackContext);
-            return true;
+        if (action.equals("signIn")) {Log.d("log","***signIn");
+            Log.w(TAG, "*** MAIN initialize 0");
+            signInToGooglePlayGames();
         }
-        return false;
+        else if (action.equals("initialize")) {Log.d("log","***initialize");
+//            initialize();
+        }
+        else if (action.equals("showAchievements")) {Log.d("log","***showAchievements");
+//            showAchievements();
+        } else if (action.equals("submitScoreForLeaderboards")) {Log.d("log","***submitScoreForLeaderboards");
+//            submitScoreForLeaderboards(callbackContext, args);
+        } else if (action.equals("showLeaderboards")) {Log.d("log","***showLeaderboards");
+//            showLeaderboards(callbackContext, args);
+        }else if (action.equals("unlockAchievements")) {Log.d("log","***unlockAchievements");
+//            unlockAchievements(callbackContext,args);
+        }
+        return false;  // Returning false results in a "MethodNotFound" error.
+    }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        PlayGamesSdk.initialize(this.cordova.getActivity());
+
+//        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this.cordova.getActivity());
+//        Log.w(TAG, "*** OnStart: " + googleSignInAccount);
+        //updateUI(account);
     }
 
     private void signIn(CallbackContext callbackContext) {
-        Intent signInIntent = signInClient.getSignInIntent();
-        cordova.setActivityResultCallback(this);
-        cordova.getActivity().startActivityForResult(signInIntent, 9001);
+
+
+        signInClient = PlayGames.getGamesSignInClient(cordova.getActivity());
+
+        signInClient.isAuthenticated().addOnCompleteListener(isAuthenticatedTask -> {
+            boolean isAuthenticated =
+                    (isAuthenticatedTask.isSuccessful() &&
+                            isAuthenticatedTask.getResult().isAuthenticated());
+
+            if (isAuthenticated) {
+                // Continue with Play Games Services
+                Log.d("BART", "Is Authenticated");
+            } else {
+                Log.d("BART", "Not Authenticated");
+                // Disable your integration with Play Games Services or show a
+                // login button to ask  players to sign-in. Clicking it should
+                // call GamesSignInClient.signIn().
+            }
+        });
+
+
+       Intent signInIntent = signInClient.getSignInIntent();
+       cordova.setActivityResultCallback(this);
+       cordova.getActivity().startActivityForResult(signInIntent, 9001);
+
     }
 
-    private void showAchievements(CallbackContext callbackContext) {
-        Games.getAchievementsClient(cordova.getActivity(), signInClient.getLastSignedInAccount())
-             .getAchievementsIntent()
-             .addOnSuccessListener(intent -> cordova.getActivity().startActivityForResult(intent, 9002));
-    }
-
-    private void showLeaderboards(CallbackContext callbackContext) {
-        Games.getLeaderboardsClient(cordova.getActivity(), signInClient.getLastSignedInAccount())
-             .getAllLeaderboardsIntent()
-             .addOnSuccessListener(intent -> cordova.getActivity().startActivityForResult(intent, 9003));
-    }
+//    private void showAchievements(CallbackContext callbackContext) {
+//        Games.getAchievementsClient(cordova.getActivity(), signInClient.getLastSignedInAccount())
+//             .getAchievementsIntent()
+//             .addOnSuccessListener(intent -> cordova.getActivity().startActivityForResult(intent, 9002));
+//    }
+//
+//    private void showLeaderboards(CallbackContext callbackContext) {
+//        Games.getLeaderboardsClient(cordova.getActivity(), signInClient.getLastSignedInAccount())
+//             .getAllLeaderboardsIntent()
+//             .addOnSuccessListener(intent -> cordova.getActivity().startActivityForResult(intent, 9003));
+//    }
 }
