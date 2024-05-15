@@ -11,11 +11,12 @@ import org.apache.cordova.CordovaWebView;
 import com.google.android.gms.games.GamesSignInClient;
 import com.google.android.gms.games.PlayGames;
 import com.google.android.gms.games.PlayGamesSdk;
+import com.google.android.gms.games.PlayersClient;
 import com.google.android.gms.games.Games;
 
 public class GoogleGameServices extends CordovaPlugin {
 
-    private GamesSignInClient gamesSignInClient = PlayGames.getGamesSignInClient(this.cordova.getActivity());
+    private GamesSignInClient gamesSignInClient = null;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -29,7 +30,7 @@ public class GoogleGameServices extends CordovaPlugin {
             signIn(callbackContext);
         }
         else if (action.equals("initialize")) {Log.d("log","***initialize");
-//            initialize();
+            getPlayerInfo(callbackContext);
         }
         else if (action.equals("showAchievements")) {Log.d("log","***showAchievements");
 //            showAchievements();
@@ -49,6 +50,7 @@ public class GoogleGameServices extends CordovaPlugin {
         super.onStart();
 
         PlayGamesSdk.initialize(this.cordova.getActivity());
+        gamesSignInClient = PlayGames.getGamesSignInClient(this.cordova.getActivity());
 
 //        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this.cordova.getActivity());
 //        Log.w(TAG, "*** OnStart: " + googleSignInAccount);
@@ -73,14 +75,37 @@ public class GoogleGameServices extends CordovaPlugin {
                 // Disable your integration with Play Games Services or show a
                 // login button to ask  players to sign-in. Clicking it should
                 // call GamesSignInClient.signIn().
+                gamesSignInClient.signIn();
             }
         });
 
 
-//       Intent signInIntent = signInClient.getSignInIntent();
-//       cordova.setActivityResultCallback(this);
-//       cordova.getActivity().startActivityForResult(signInIntent, 9001);
+//        Intent signInIntent = signInClient.getSignInIntent();
+//        cordova.setActivityResultCallback(this);
+//        cordova.getActivity().startActivityForResult(signInIntent, 9001);
 
+    }
+
+        private void getPlayerInfo(CallbackContext callbackContext) {
+
+
+            PlayersClient playersClient = PlayGames.getPlayersClient(cordova.getActivity());
+
+            playersClient.getCurrentPlayer().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    // Successfully retrieved the Player ID
+                    String playerId = task.getResult().getPlayerId();
+                    Log.d("BART", "Player ID: " + playerId);
+                } else {
+                    // Handle failure
+                    Log.e("BART", "Failed to get current player", task.getException());
+                }
+            });
+
+//            PlayGames.getPlayersClient(cordova.getActivity()).getCurrentPlayer().addOnCompleteListener(mTask -> {
+////                mTask.getResult().getPlayerId();
+////                Log.d("BART", "Not Authenticated");
+//            });
     }
 
 //    private void showAchievements(CallbackContext callbackContext) {
