@@ -66,6 +66,7 @@ public class GoogleGameServices extends CordovaPlugin {
                 Log.d("BART", "Is Authenticated");
 //                gamesSignInClient.signIn();
                 goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess')");
+                getPlayerInfo(callbackContext);
             } else {
                 Log.d("BART", "Not Authenticated");
                 // Disable your integration with Play Games Services or show a
@@ -84,6 +85,7 @@ public class GoogleGameServices extends CordovaPlugin {
 
         private void getPlayerInfo(CallbackContext callbackContext) {
 
+            Log.d("BART", "getPlayerInfo Player ID: ");
 
             PlayersClient playersClient = PlayGames.getPlayersClient(cordova.getActivity());
 
@@ -93,7 +95,7 @@ public class GoogleGameServices extends CordovaPlugin {
                     String playerId = task.getResult().getPlayerId();
                     Log.d("BART", "Player ID: " + playerId);
 
-                    goToUrl("javascript:cordova.fireDocumentEvent('getPlayerID', {'playerId': '" + playerId + "'})");
+                    goToUrl("javascript:cordova.fireDocumentEvent('onPlayerInfoReceived', {'playerId': '" + playerId + "'})");
                 } else {
                     // Handle failure
                     Log.e("BART", "Failed to get current player", task.getException());

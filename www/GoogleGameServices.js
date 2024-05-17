@@ -1,3 +1,4 @@
+cordova.define("google-game-services.GoogleGameServices", function(require, exports, module) {
     var exec = require('cordova/exec');
 
     var GoogleGameServices = {
@@ -19,16 +20,18 @@
         isSignedIn: function(successCallback, errorCallback) {
             exec(successCallback, errorCallback, "GoogleGameServices", "isSignedIn", []);
         },
-        getPlayerInfo: function(successCallback, errorCallback) {
-            exec(successCallback, errorCallback, "GoogleGameServices", "getPlayerInfo", function(data_){callback(data_);});
+        onPlayerInfoReceived: function(successCallback, errorCallback) {
+            document.addEventListener('onPlayerInfoReceived', function(data_){successCallback(data_);});
         },
         onLoginSuccess: function(successCallback, errorCallback) {
-            document.addEventListener('onLoginSuccess', function(){callback();});
+            document.addEventListener('onLoginSuccess', function(){successCallback();});
         },
         onLoginFailed: function(successCallback, errorCallback) {
-            document.addEventListener('onLoginFailed', function(){callback();});
-        },
+            document.addEventListener('onLoginFailed', function(){successCallback();});
+        }
     };
 
     module.exports = GoogleGameServices;
 
+
+});
