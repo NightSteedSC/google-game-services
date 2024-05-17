@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="google-game-services" version="1.0.55"
+<plugin id="google-game-services" version="1.0.57"
 		xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>GoogleGameServices</name>
@@ -9,9 +9,7 @@
 	</js-module>
 
 	<platform name="android">
-
-		<!--		<hook type="after_platform_add" src="scripts/updateConfig.js" />-->
-		<hook type="after_platform_add" src="scripts/replaceAppId.js" />
+		<hook type="before_build" src="scripts/replaceAppId.js" />
 
 		<config-file parent="/*" target="res/xml/config.xml">
 			<feature name="GoogleGameServices">
@@ -24,8 +22,6 @@
 			<meta-data android:name="com.google.android.gms.games.APP_ID"
 					   android:value="@string/game_services_project_id" />
 		</config-file>
-
-		<preference name="GOOGLE_GAMES_PROJECT_ID" />
 
 		<source-file src="src/android/GoogleGameServices.java" target-dir="src/org/apache/cordova/googleGameServices" />
 		<framework src="com.google.android.gms:play-services-games-v2:+" />

@@ -26,10 +26,10 @@ public class GoogleGameServices extends CordovaPlugin {
     @Override//funkcja która łączy się z JS
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("signIn")) {Log.d("log","***signIn");
-            Log.d("BART", "*** MAIN initialize 0");
+            Log.d("BART", "*** signIn");
             signIn(callbackContext);
         }
-        else if (action.equals("initialize")) {Log.d("log","***initialize");
+        else if (action.equals("getPlayerInfo")) {Log.d("log","***getPlayerInfo");
             getPlayerInfo(callbackContext);
         }
         else if (action.equals("showAchievements")) {Log.d("log","***showAchievements");
@@ -48,13 +48,7 @@ public class GoogleGameServices extends CordovaPlugin {
     @Override
     public void onStart() {
         super.onStart();
-
         PlayGamesSdk.initialize(this.cordova.getActivity());
-        gamesSignInClient = PlayGames.getGamesSignInClient(this.cordova.getActivity());
-
-//        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this.cordova.getActivity());
-//        Log.w(TAG, "*** OnStart: " + googleSignInAccount);
-        //updateUI(account);
     }
 
     private void signIn(CallbackContext callbackContext) {
@@ -70,12 +64,14 @@ public class GoogleGameServices extends CordovaPlugin {
             if (isAuthenticated) {
                 // Continue with Play Games Services
                 Log.d("BART", "Is Authenticated");
+//                gamesSignInClient.signIn();
+                goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess')");
             } else {
                 Log.d("BART", "Not Authenticated");
                 // Disable your integration with Play Games Services or show a
                 // login button to ask  players to sign-in. Clicking it should
                 // call GamesSignInClient.signIn().
-                gamesSignInClient.signIn();
+
             }
         });
 
@@ -96,16 +92,14 @@ public class GoogleGameServices extends CordovaPlugin {
                     // Successfully retrieved the Player ID
                     String playerId = task.getResult().getPlayerId();
                     Log.d("BART", "Player ID: " + playerId);
+
+                    goToUrl("javascript:cordova.fireDocumentEvent('getPlayerID', {'playerId': '" + playerId + "'})");
                 } else {
                     // Handle failure
                     Log.e("BART", "Failed to get current player", task.getException());
                 }
             });
 
-//            PlayGames.getPlayersClient(cordova.getActivity()).getCurrentPlayer().addOnCompleteListener(mTask -> {
-////                mTask.getResult().getPlayerId();
-////                Log.d("BART", "Not Authenticated");
-//            });
     }
 
 //    private void showAchievements(CallbackContext callbackContext) {
@@ -119,4 +113,13 @@ public class GoogleGameServices extends CordovaPlugin {
 //             .getAllLeaderboardsIntent()
 //             .addOnSuccessListener(intent -> cordova.getActivity().startActivityForResult(intent, 9003));
 //    }
+
+    public void goToUrl(String url){
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webView.loadUrl(url);
+            }
+        });
+    }
 }
