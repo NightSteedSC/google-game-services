@@ -1,4 +1,3 @@
-cordova.define("google-game-services.GoogleGameServices", function(require, exports, module) {
     var exec = require('cordova/exec');
 
     var GoogleGameServices = {
@@ -33,5 +32,3 @@ cordova.define("google-game-services.GoogleGameServices", function(require, expo
 
     module.exports = GoogleGameServices;
 
-
-});
