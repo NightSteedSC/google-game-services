@@ -93,9 +93,9 @@ public class GoogleGameServices extends CordovaPlugin {
                 if (task.isSuccessful()) {
                     // Successfully retrieved the Player ID
                     String playerId = task.getResult().getPlayerId();
-                    Log.d("BART", "Player ID: " + playerId);
-
-                    goToUrl("javascript:cordova.fireDocumentEvent('onPlayerInfoReceived', {'playerId': '" + playerId + "'})");
+                    String playerName = task.getResult().getDisplayName();
+                    Log.d("BART", "Player ID: " + playerId + " Player name" + playerName);
+                    goToUrl("javascript:cordova.fireDocumentEvent('onPlayerInfoReceived', {'playerId': '" + playerId + "', 'playerName': '" + playerName + "'})");
                 } else {
                     // Handle failure
                     Log.e("BART", "Failed to get current player", task.getException());
