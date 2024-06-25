@@ -4,6 +4,9 @@
         signIn: function(successCallback, errorCallback) {
             exec(successCallback, errorCallback, "GoogleGameServices", "signIn", []);
         },
+        showSignInPopup: function(successCallback, errorCallback) {
+            exec(successCallback, errorCallback, "GoogleGameServices", "showSignInPopup", []);
+        },
         showAchievements: function(successCallback, errorCallback) {
             exec(successCallback, errorCallback, "GoogleGameServices", "showAchievements", []);
         },

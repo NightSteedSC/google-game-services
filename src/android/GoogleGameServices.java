@@ -25,9 +25,12 @@ public class GoogleGameServices extends CordovaPlugin {
 
     @Override//funkcja która łączy się z JS
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if (action.equals("signIn")) {Log.d("log","***signIn");
+        if (action.equals("signIn")) {
             Log.d("BART", "*** signIn");
             signIn(callbackContext);
+        }
+        else if (action.equals("showSignInPopup")) {Log.d("log","***showSignInPopup");
+            showSignInPopup(callbackContext);
         }
         else if (action.equals("getPlayerInfo")) {Log.d("log","***getPlayerInfo");
             getPlayerInfo(callbackContext);
@@ -52,8 +55,6 @@ public class GoogleGameServices extends CordovaPlugin {
     }
 
     private void signIn(CallbackContext callbackContext) {
-
-
         gamesSignInClient = PlayGames.getGamesSignInClient(cordova.getActivity());
 
         gamesSignInClient.isAuthenticated().addOnCompleteListener(isAuthenticatedTask -> {
@@ -69,18 +70,50 @@ public class GoogleGameServices extends CordovaPlugin {
                 getPlayerInfo(callbackContext);
             } else {
                 Log.d("BART", "Not Authenticated");
+//                Log.d("BART", isAuthenticatedTask.getResult());
                 // Disable your integration with Play Games Services or show a
                 // login button to ask  players to sign-in. Clicking it should
                 // call GamesSignInClient.signIn().
+                goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed')");
 
             }
         });
+    }
 
-
-//        Intent signInIntent = signInClient.getSignInIntent();
-//        cordova.setActivityResultCallback(this);
-//        cordova.getActivity().startActivityForResult(signInIntent, 9001);
-
+    private void showSignInPopup(CallbackContext callbackContext) {
+        gamesSignInClient.signIn().addOnCanceledListener(() -> {
+                    // This listener is called if the sign-in operation is canceled
+                    Log.d("BART", "USER Cancelled sign in");
+                    // Handle the cancellation, e.g., show a message to the user
+                })
+                .addOnCompleteListener(task -> {
+//            Log.d("BART", );
+            if (task.isCanceled()) {
+                // The sign-in task was canceled
+//                Log.d("SignIn", "Sign-in task was canceled");
+                Log.d("BART", "USER Cancelled sign in");
+                // Handle the cancellation, e.g., show a message to the user
+//                showSignInCanceledMessage();
+            }
+            else if (task.isSuccessful()) {
+                // Sign-in successful
+                boolean isAuthenticated = task.getResult().isAuthenticated();
+                if (isAuthenticated) {
+                    // User is signed in, you can now use Play Games Services
+                    Log.d("BART", "Is Authenticated PopUp");
+                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginSuccess')");
+//                    setupPlayGamesServices();
+                } else {
+                    // Sign-in failed
+                    Log.d("BART", "Not Authenticated PopUp");
+                    goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed')");
+                }
+            } else {
+                // Sign-in failed
+                Log.d("BART", "Not Authenticated PopUp Sign-in failed");
+                goToUrl("javascript:cordova.fireDocumentEvent('onLoginFailed')");
+            }
+        });
     }
 
         private void getPlayerInfo(CallbackContext callbackContext) {
